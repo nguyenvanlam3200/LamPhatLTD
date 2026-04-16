@@ -91,7 +91,7 @@ def create_session_token(user_id: str) -> str:
     return token
 
 
-# Root endpoints 2
+# Root endpoints 23
 @app.get("/")
 def root():
     return {"message": "API is running", "status": "ok"}
