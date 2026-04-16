@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>My Web App</title>
+  <style>
+    body { font-family: Arial; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    input { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 8px 16px; background: #0070f3; color: white; border: none;
+             border-radius: 4px; cursor: pointer; }
+    button:hover { background: #0051cc; }
+    .user-card { border: 1px solid #eee; padding: 12px; margin: 8px 0;
+                 border-radius: 8px; display: flex; justify-content: space-between; }
+    .delete-btn { background: #ff4444; }
+  </style>
+</head>
+<body>
+  <h1>📋 Quản lý Users</h1>
+
+  <!-- Form thêm user -->
+  <div>
+    <input id="name" placeholder="Tên" />
+    <input id="email" placeholder="Email" />
+    <button onclick="addUser()">➕ Thêm User</button>
+  </div>
+
+  <h2>Danh sách Users:</h2>
+  <div id="user-list">Đang tải...</div>
+
+  <script>
+    const API = ""; // Để trống = cùng domain khi deploy
+
+    // Lấy danh sách users
+    async function loadUsers() {
+      const res = await fetch(API + "/api/users");
+      const data = await res.json();
+      const list = document.getElementById("user-list");
+
+      if (data.users.length === 0) {
+        list.innerHTML = "<p>Chưa có user nào.</p>";
+        return;
+      }
+
+      list.innerHTML = data.users.map(u => `
+        <div class="user-card">
+          <span>👤 <b>${u.name}</b> — ${u.email}</span>
+          <button class="delete-btn" onclick="deleteUser('${u.id}')">🗑️ Xóa</button>
+        </div>
+      `).join("");
+    }
+
+    // Thêm user mới
+    async function addUser() {
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+
+      if (!name || !email) { alert("Điền đầy đủ thông tin!"); return; }
+
+      const res = await fetch(API + "/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email })
+      });
+
+      const data = await res.json();
+      alert(data.message);
+      document.getElementById("name").value = "";
+      document.getElementById("email").value = "";
+      loadUsers(); // Tải lại danh sách
+    }
+
+    // Xóa user
+    async function deleteUser(id) {
+      if (!confirm("Xóa user này?")) return;
+      await fetch(API + "/api/users/" + id, { method: "DELETE" });
+      loadUsers();
+    }
+
+    // Tải danh sách khi mở trang
+    loadUsers();
+  </script>
+</body>
+</html>
