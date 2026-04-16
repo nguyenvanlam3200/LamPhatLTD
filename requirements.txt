@@ -1,6 +1,8 @@
-fastapi==0.104.1
-uvicorn==0.24.0
-supabase==2.0.3
-python-dotenv==1.0.0
-google-auth==2.23.4
-cryptography==41.0.7
+fastapi
+uvicorn
+supabase
+python-dotenv
+google-auth
+cryptography
+httpx>=0.24.0,<0.25.0
+python-multipart
