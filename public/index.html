@@ -40,6 +40,14 @@
             flex-wrap: wrap;
         }
 
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #333;
+            text-decoration: none;
+        }
+
         .nav-links {
             display: flex;
             align-items: center;
@@ -47,14 +55,18 @@
             flex-wrap: wrap;
         }
 
-        .nav-links a {
-            text-decoration: none;
-            color: #333;
+        .nav-links button {
+            background: none;
+            border: none;
+            font-size: 16px;
             cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: all 0.3s;
         }
 
-        .nav-links a:hover {
-            color: #3498db;
+        .nav-links button:hover {
+            background: #f0f0f0;
         }
 
         .user-info {
@@ -69,6 +81,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: bold;
         }
 
         .login-btn {
@@ -98,6 +111,11 @@
             margin-bottom: 40px;
         }
 
+        .hero h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -111,27 +129,35 @@
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: transform 0.3s;
-            cursor: pointer;
         }
 
         .product-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
 
         .product-image {
             width: 100%;
             height: 200px;
             object-fit: cover;
+            background: #f0f0f0;
         }
 
         .product-info {
             padding: 20px;
         }
 
+        .product-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
         .product-price {
             font-size: 24px;
             color: #e74c3c;
             font-weight: bold;
+            margin: 10px 0;
         }
 
         .btn-buy {
@@ -144,6 +170,11 @@
             width: 100%;
             margin-top: 10px;
             font-size: 16px;
+            font-weight: bold;
+        }
+
+        .btn-buy:hover {
+            background: #229954;
         }
 
         .articles-section {
@@ -162,6 +193,13 @@
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .article-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
         }
 
         .modal {
@@ -185,32 +223,29 @@
             max-width: 90%;
         }
 
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
         .modal-content input {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
             border: 1px solid #ddd;
             border-radius: 5px;
+            font-size: 14px;
         }
 
-        button {
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            opacity: 0.8;
-            transform: translateY(-2px);
-        }
-
-        @media (max-width: 768px) {
-            .products-grid, .articles-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .nav-container {
-                flex-direction: column;
-                gap: 10px;
-            }
+        .modal-content button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
         }
 
         .loading {
@@ -223,67 +258,116 @@
         .error {
             background: #fee;
             color: #c33;
-            padding: 10px;
+            padding: 15px;
             border-radius: 5px;
             margin: 10px 0;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .empty-state p {
+            margin: 10px 0;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .products-grid, .articles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .hero h1 {
+                font-size: 24px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="navbar">
         <div class="container nav-container">
-            <h1 style="cursor:pointer" onclick="showProducts()">🖨️ 3D Printer Store</h1>
+            <div class="logo" onclick="showProducts()">🖨️ 3D Printer Store</div>
             <div class="nav-links">
-                <a onclick="showProducts()">🏠 Trang chủ</a>
-                <a onclick="showProducts()">📦 Sản phẩm</a>
-                <a onclick="showArticles()">📝 Bài viết</a>
-                <div id="userInfo" class="user-info"></div>
+                <button onclick="showProducts()">🏠 Trang chủ</button>
+                <button onclick="showProducts()">📦 Sản phẩm</button>
+                <button onclick="showArticles()">📝 Bài viết</button>
+                <div id="userInfo" class="user-info">
+                    <!-- User info sẽ được hiển thị ở đây -->
+                </div>
             </div>
         </div>
     </div>
 
     <div class="container">
         <div id="mainContent">
-            <div class="loading">Đang tải...</div>
+            <div class="loading">🔄 Đang tải dữ liệu...</div>
         </div>
     </div>
 
     <script>
+        // Biến toàn cục
         let currentUser = null;
         let currentToken = null;
+        const API_BASE = '';
 
-        // API base URL
-        const API_BASE = window.location.origin;
+        // Hàm khởi tạo khi trang load
+        async function init() {
+            console.log('🚀 Đang khởi tạo ứng dụng...');
 
-        // Kiểm tra đăng nhập khi load trang
-        async function checkAuth() {
+            // Kiểm tra đăng nhập từ localStorage
             const token = localStorage.getItem('token');
             const userStr = localStorage.getItem('user');
 
             if (token && userStr) {
-                currentToken = token;
-                currentUser = JSON.parse(userStr);
-                updateUserUI();
+                try {
+                    currentToken = token;
+                    currentUser = JSON.parse(userStr);
+                    console.log('✅ Đã tìm thấy thông tin đăng nhập:', currentUser.name);
+                } catch (e) {
+                    console.error('Lỗi parse user data:', e);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                }
             }
 
-            // Tải sản phẩm mặc định
+            // Cập nhật UI
+            updateUserUI();
+
+            // Tải sản phẩm
             await showProducts();
         }
 
+        // Cập nhật giao diện người dùng
         function updateUserUI() {
             const userInfoDiv = document.getElementById('userInfo');
+
+            if (!userInfoDiv) {
+                console.error('Không tìm thấy element userInfo');
+                return;
+            }
+
             if (currentUser) {
                 let roleText = '';
-                if (currentUser.role === 'admin') roleText = 'Quản trị viên';
-                else if (currentUser.role === 'editor') roleText = 'Biên tập viên';
-                else roleText = 'Khách hàng';
+                if (currentUser.role === 'admin') roleText = '👑 Quản trị viên';
+                else if (currentUser.role === 'editor') roleText = '✍️ Biên tập viên';
+                else roleText = '👤 Khách hàng';
 
                 userInfoDiv.innerHTML = `
-                    <span>👋 Xin chào, ${currentUser.name}</span>
+                    <span style="font-weight: 500;">👋 ${currentUser.name}</span>
                     <span class="role-badge">${roleText}</span>
                     ${(currentUser.role === 'admin' || currentUser.role === 'editor') ?
-                        '<a href="/dashboard" style="color:#3498db; cursor:pointer">📊 Dashboard</a>' : ''}
-                    <button class="logout-btn" onclick="logout()">Đăng xuất</button>
+                        '<button onclick="window.location.href=\'/dashboard\'" style="background:#3498db; color:white; padding:5px 10px; border-radius:5px;">📊 Dashboard</button>' : ''}
+                    <button class="logout-btn" onclick="logout()">🚪 Đăng xuất</button>
                 `;
             } else {
                 userInfoDiv.innerHTML = `
@@ -292,94 +376,136 @@
             }
         }
 
+        // Hiển thị modal đăng nhập
         function showLoginModal() {
+            console.log('Hiển thị form đăng nhập');
+
             const modalDiv = document.createElement('div');
             modalDiv.className = 'modal';
             modalDiv.innerHTML = `
                 <div class="modal-content">
-                    <h2 style="margin-bottom:20px">Đăng nhập</h2>
-                    <input type="text" id="loginUsername" placeholder="Tên đăng nhập (admin)" />
-                    <input type="password" id="loginPassword" placeholder="Mật khẩu (admin)" />
-                    <button onclick="loginWithAccount()" style="width:100%; padding:10px; background:#3498db; color:white; border:none; border-radius:5px; margin-top:10px">
+                    <h2>🔐 Đăng nhập</h2>
+                    <input type="text" id="loginUsername" placeholder="Tên đăng nhập" autocomplete="off" />
+                    <input type="password" id="loginPassword" placeholder="Mật khẩu" />
+                    <button onclick="loginWithAccount()" style="background: #3498db; color: white;">
                         Đăng nhập
                     </button>
-                    <hr style="margin:20px 0" />
-                    <p style="text-align:center; color:#666; font-size:14px">
-                        👤 Tài khoản mặc định: admin / admin
-                    </p>
-                    <button onclick="this.parentElement.parentElement.remove()" style="margin-top:10px; width:100%; padding:10px; background:#999; color:white; border:none; border-radius:5px">
+                    <hr style="margin: 20px 0;" />
+                    <div style="text-align: center; color: #666; font-size: 13px;">
+                        <p>📝 Tài khoản mặc định:</p>
+                        <p><strong>admin</strong> / <strong>admin</strong></p>
+                        <p style="font-size: 11px; margin-top: 10px;">(Mật khẩu mặc định cho user mới: 123456)</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: #95a5a6; color: white;">
                         Đóng
                     </button>
                 </div>
             `;
             document.body.appendChild(modalDiv);
 
-            // Thêm sự kiện enter
-            document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') loginWithAccount();
-            });
+            // Focus vào ô username
+            setTimeout(() => {
+                document.getElementById('loginUsername')?.focus();
+            }, 100);
+
+            // Thêm sự kiện Enter
+            const passwordInput = document.getElementById('loginPassword');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        loginWithAccount();
+                    }
+                });
+            }
         }
 
+        // Đăng nhập với tài khoản
         async function loginWithAccount() {
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
+            const username = document.getElementById('loginUsername')?.value.trim();
+            const password = document.getElementById('loginPassword')?.value;
 
             if (!username || !password) {
-                alert('Vui lòng nhập tên đăng nhập và mật khẩu');
+                alert('⚠️ Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu');
                 return;
             }
+
+            console.log('Đang đăng nhập với:', username);
 
             try {
                 const response = await fetch(API_BASE + '/api/auth/login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify({ username, password })
                 });
 
                 const data = await response.json();
+                console.log('Phản hồi đăng nhập:', data);
 
                 if (data.success) {
+                    // Lưu thông tin
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    currentUser = data.user;
                     currentToken = data.token;
+                    currentUser = data.user;
+
+                    // Đóng modal
+                    const modal = document.querySelector('.modal');
+                    if (modal) modal.remove();
+
+                    // Cập nhật UI
                     updateUserUI();
-                    document.querySelector('.modal')?.remove();
+
+                    // Tải lại sản phẩm
                     await showProducts();
-                    alert('Đăng nhập thành công!');
+
+                    alert(`✅ Đăng nhập thành công! Chào mừng ${data.user.name}`);
                 } else {
-                    alert('Sai tên đăng nhập hoặc mật khẩu');
+                    alert('❌ Sai tên đăng nhập hoặc mật khẩu');
                 }
             } catch (error) {
-                console.error('Login error:', error);
-                alert('Lỗi kết nối đến server. Vui lòng thử lại sau.');
+                console.error('Lỗi đăng nhập:', error);
+                alert('❌ Lỗi kết nối đến server. Vui lòng thử lại sau.');
             }
         }
 
+        // Đăng xuất
         async function logout() {
+            console.log('Đang đăng xuất...');
+
             try {
                 if (currentToken) {
                     await fetch(API_BASE + '/api/auth/logout', {
                         method: 'POST',
-                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                        headers: {
+                            'Authorization': `Bearer ${currentToken}`
+                        }
                     });
                 }
             } catch (error) {
-                console.error('Logout error:', error);
+                console.error('Lỗi đăng xuất:', error);
             }
 
+            // Xóa dữ liệu
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             currentUser = null;
             currentToken = null;
+
+            // Cập nhật UI
             updateUserUI();
+
+            // Tải lại sản phẩm
             await showProducts();
-            alert('Đã đăng xuất');
+
+            alert('👋 Đã đăng xuất thành công!');
         }
 
+        // Hiển thị danh sách sản phẩm
         async function showProducts() {
             const mainContent = document.getElementById('mainContent');
-            mainContent.innerHTML = '<div class="loading">Đang tải sản phẩm...</div>';
+            mainContent.innerHTML = '<div class="loading">🔄 Đang tải danh sách sản phẩm...</div>';
 
             try {
                 const response = await fetch(API_BASE + '/api/products');
@@ -389,11 +515,11 @@
                     mainContent.innerHTML = `
                         <div class="hero">
                             <h1>🖨️ Máy in 3D chất lượng cao</h1>
-                            <p>Chưa có sản phẩm nào. Hãy đăng nhập với tài khoản admin để thêm sản phẩm mới!</p>
+                            <p>Công nghệ in 3D tiên tiến nhất - Giá tốt nhất thị trường</p>
                         </div>
-                        <div style="text-align:center; padding:40px">
+                        <div class="empty-state">
                             <p>📦 Hiện tại chưa có sản phẩm nào.</p>
-                            <p>Vui lòng đăng nhập với tài khoản <strong>admin/admin</strong> để thêm sản phẩm mới.</p>
+                            <p>🔐 Vui lòng đăng nhập với tài khoản <strong>admin/admin</strong> để thêm sản phẩm.</p>
                         </div>
                     `;
                     return;
@@ -404,40 +530,51 @@
                         <h1>🖨️ Máy in 3D chất lượng cao</h1>
                         <p>Công nghệ in 3D tiên tiến nhất - Giá tốt nhất thị trường</p>
                     </div>
-                    <h2>Sản phẩm nổi bật</h2>
+                    <h2>📦 Sản phẩm nổi bật</h2>
                     <div class="products-grid" id="productsGrid"></div>
                 `;
 
                 const grid = document.getElementById('productsGrid');
-                grid.innerHTML = data.products.map(p => `
+                grid.innerHTML = data.products.map(product => `
                     <div class="product-card">
-                        <img src="${p.image_url || 'https://placehold.co/300x200/3498db/white?text=3D+Printer'}" class="product-image" alt="${p.name}">
+                        <img src="${product.image_url || 'https://placehold.co/400x300/3498db/white?text=3D+Printer'}"
+                             class="product-image"
+                             alt="${product.name}"
+                             onerror="this.src='https://placehold.co/400x300/3498db/white?text=No+Image'">
                         <div class="product-info">
-                            <h3>${p.name}</h3>
-                            <p>${p.description ? p.description.substring(0, 100) : 'Máy in 3D chất lượng cao'}</p>
-                            <div class="product-price">${p.price.toLocaleString()}đ</div>
-                            <p style="color:#666; font-size:14px">Còn lại: ${p.stock} sản phẩm</p>
+                            <div class="product-name">${product.name}</div>
+                            <div class="product-price">${product.price.toLocaleString()}đ</div>
+                            <p style="color: #666; font-size: 14px; margin: 10px 0;">
+                                ${product.description ? product.description.substring(0, 100) + '...' : 'Máy in 3D chất lượng cao'}
+                            </p>
+                            <p style="color: #27ae60; font-size: 13px; margin: 5px 0;">
+                                📦 Còn lại: ${product.stock} sản phẩm
+                            </p>
                             ${currentUser ?
-                                `<button class="btn-buy" onclick="buyProduct('${p.id}', ${p.price})">🛒 Mua ngay</button>` :
+                                `<button class="btn-buy" onclick="buyProduct('${product.id}', ${product.price})">🛒 Mua ngay</button>` :
                                 `<button class="btn-buy" onclick="showLoginModal()">🔐 Đăng nhập để mua</button>`}
                         </div>
                     </div>
                 `).join('');
             } catch (error) {
-                console.error('Load products error:', error);
+                console.error('Lỗi tải sản phẩm:', error);
                 mainContent.innerHTML = `
                     <div class="hero">
                         <h1>🖨️ Máy in 3D chất lượng cao</h1>
-                        <p>Đang có lỗi kết nối. Vui lòng thử lại sau!</p>
+                        <p>Công nghệ in 3D tiên tiến nhất - Giá tốt nhất thị trường</p>
                     </div>
-                    <div class="error">Lỗi: ${error.message}</div>
+                    <div class="error">
+                        ❌ Lỗi kết nối: ${error.message}<br/>
+                        Vui lòng kiểm tra server đã chạy chưa và thử lại.
+                    </div>
                 `;
             }
         }
 
+        // Hiển thị bài viết
         async function showArticles() {
             const mainContent = document.getElementById('mainContent');
-            mainContent.innerHTML = '<div class="loading">Đang tải bài viết...</div>';
+            mainContent.innerHTML = '<div class="loading">🔄 Đang tải bài viết...</div>';
 
             try {
                 const response = await fetch(API_BASE + '/api/articles');
@@ -446,9 +583,9 @@
                 if (!data.articles || data.articles.length === 0) {
                     mainContent.innerHTML = `
                         <h2>📝 Bài viết về công nghệ in 3D</h2>
-                        <div style="text-align:center; padding:40px">
+                        <div class="empty-state">
                             <p>📝 Chưa có bài viết nào.</p>
-                            <p>Đăng nhập với tài khoản admin hoặc biên tập viên để thêm bài viết mới.</p>
+                            <p>🔐 Đăng nhập với tài khoản admin hoặc biên tập viên để thêm bài viết.</p>
                         </div>
                     `;
                     return;
@@ -457,12 +594,17 @@
                 mainContent.innerHTML = `
                     <h2>📝 Bài viết về công nghệ in 3D</h2>
                     <div class="articles-grid">
-                        ${data.articles.map(a => `
+                        ${data.articles.map(article => `
                             <div class="article-card">
-                                <h3>${a.title}</h3>
-                                <p style="color:#666; font-size:14px">✍️ ${a.author} | ${new Date(a.created_at).toLocaleDateString('vi-VN')}</p>
-                                <p>${a.content ? a.content.substring(0, 200) : 'Nội dung đang cập nhật...'}</p>
-                                <button onclick="alert('Chức năng đang phát triển')" style="margin-top:10px; padding:8px 16px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer">
+                                <div class="article-title">${article.title}</div>
+                                <p style="color: #666; font-size: 13px; margin: 10px 0;">
+                                    ✍️ ${article.author} | ${new Date(article.created_at).toLocaleDateString('vi-VN')}
+                                </p>
+                                <p style="color: #555; line-height: 1.6;">
+                                    ${article.content ? article.content.substring(0, 200) + '...' : 'Nội dung đang cập nhật...'}
+                                </p>
+                                <button onclick="alert('📖 Tính năng đang phát triển')"
+                                        style="margin-top: 15px; padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">
                                     Đọc tiếp →
                                 </button>
                             </div>
@@ -470,18 +612,29 @@
                     </div>
                 `;
             } catch (error) {
-                console.error('Load articles error:', error);
-                mainContent.innerHTML = `<div class="error">Lỗi tải bài viết: ${error.message}</div>`;
+                console.error('Lỗi tải bài viết:', error);
+                mainContent.innerHTML = `<div class="error">❌ Lỗi tải bài viết: ${error.message}</div>`;
             }
         }
 
+        // Mua sản phẩm
         async function buyProduct(productId, price) {
-            const quantity = prompt('Nhập số lượng muốn mua:', '1');
+            if (!currentUser) {
+                showLoginModal();
+                return;
+            }
+
+            const quantity = prompt('📦 Nhập số lượng muốn mua:', '1');
             if (!quantity) return;
 
             const qty = parseInt(quantity);
             if (isNaN(qty) || qty < 1) {
-                alert('Số lượng không hợp lệ');
+                alert('⚠️ Số lượng không hợp lệ');
+                return;
+            }
+
+            const total = price * qty;
+            if (!confirm(`Xác nhận mua ${qty} sản phẩm với tổng tiền ${total.toLocaleString()}đ?`)) {
                 return;
             }
 
@@ -496,25 +649,26 @@
                         user_id: currentUser.id,
                         product_id: productId,
                         quantity: qty,
-                        total_price: price * qty
+                        total_price: total
                     })
                 });
 
                 const data = await response.json();
+
                 if (data.success) {
-                    alert(`Đặt hàng thành công! Tổng tiền: ${(price * qty).toLocaleString()}đ`);
-                    await showProducts();
+                    alert(`✅ Đặt hàng thành công!\n💰 Tổng tiền: ${total.toLocaleString()}đ`);
+                    await showProducts(); // Tải lại để cập nhật số lượng
                 } else {
-                    alert('Đặt hàng thất bại: ' + (data.detail || 'Lỗi không xác định'));
+                    alert('❌ Đặt hàng thất bại: ' + (data.detail || 'Lỗi không xác định'));
                 }
             } catch (error) {
-                console.error('Buy error:', error);
-                alert('Lỗi đặt hàng: ' + error.message);
+                console.error('Lỗi đặt hàng:', error);
+                alert('❌ Lỗi đặt hàng: ' + error.message);
             }
         }
 
-        // Khởi tạo khi trang load
-        checkAuth();
+        // Khởi chạy ứng dụng
+        init();
     </script>
 </body>
 </html>
