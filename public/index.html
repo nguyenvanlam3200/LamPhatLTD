@@ -1,674 +1,124 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Printer Store - Máy in 3D chính hãng</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .navbar {
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 15px 0;
-            margin-bottom: 30px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #333;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .nav-links button {
-            background: none;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 5px;
-            transition: all 0.3s;
-        }
-
-        .nav-links button:hover {
-            background: #f0f0f0;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .login-btn, .logout-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .login-btn {
-            background: #3498db;
-            color: white;
-        }
-
-        .logout-btn {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .role-badge {
-            font-size: 12px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            background: #f39c12;
-            color: white;
-        }
-
-        .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 60px 20px;
-            text-align: center;
-            border-radius: 20px;
-            margin-bottom: 40px;
-        }
-
-        .hero h1 {
-            font-size: 36px;
-            margin-bottom: 10px;
-        }
-
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background: #f0f0f0;
-        }
-
-        .product-info {
-            padding: 20px;
-        }
-
-        .product-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .product-price {
-            font-size: 24px;
-            color: #e74c3c;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .btn-buy {
-            background: #27ae60;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .btn-buy:hover {
-            background: #229954;
-        }
-
-        .articles-section {
-            margin-top: 60px;
-        }
-
-        .articles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
-        }
-
-        .article-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .article-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            width: 400px;
-            max-width: 90%;
-        }
-
-        .modal-content h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .modal-content input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .modal-content button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 18px;
-            color: #666;
-        }
-
-        .error {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-            text-align: center;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            background: white;
-            border-radius: 15px;
-            margin: 20px 0;
-        }
-
-        .empty-state p {
-            margin: 10px 0;
-            color: #666;
-        }
-
-        @media (max-width: 768px) {
-            .products-grid, .articles-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .nav-container {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .hero h1 {
-                font-size: 24px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="container nav-container">
-            <div class="logo" onclick="showProducts()">🖨️ 3D Printer Store</div>
-            <div class="nav-links">
-                <button onclick="showProducts()">🏠 Trang chủ</button>
-                <button onclick="showProducts()">📦 Sản phẩm</button>
-                <button onclick="showArticles()">📝 Bài viết</button>
-                <div id="userInfo" class="user-info">
-                    <!-- User info sẽ được hiển thị ở đây -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="container">
-        <div id="mainContent">
-            <div class="loading">🔄 Đang tải dữ liệu...</div>
-        </div>
-    </div>
-
-    <script>
-        // Biến toàn cục
-        let currentUser = null;
-        let currentToken = null;
-        const API_BASE = '';
-
-        // Hàm khởi tạo khi trang load
-        async function init() {
-            console.log('🚀 Đang khởi tạo ứng dụng...');
-
-            // Kiểm tra đăng nhập từ localStorage
-            const token = localStorage.getItem('token');
-            const userStr = localStorage.getItem('user');
-
-            if (token && userStr) {
-                try {
-                    currentToken = token;
-                    currentUser = JSON.parse(userStr);
-                    console.log('✅ Đã tìm thấy thông tin đăng nhập:', currentUser.name);
-                } catch (e) {
-                    console.error('Lỗi parse user data:', e);
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                }
-            }
-
-            // Cập nhật UI
-            updateUserUI();
-
-            // Tải sản phẩm
-            await showProducts();
-        }
-
-        // Cập nhật giao diện người dùng
-        function updateUserUI() {
-            const userInfoDiv = document.getElementById('userInfo');
-
-            if (!userInfoDiv) {
-                console.error('Không tìm thấy element userInfo');
-                return;
-            }
-
-            if (currentUser) {
-                let roleText = '';
-                if (currentUser.role === 'admin') roleText = '👑 Quản trị viên';
-                else if (currentUser.role === 'editor') roleText = '✍️ Biên tập viên';
-                else roleText = '👤 Khách hàng';
-
-                userInfoDiv.innerHTML = `
-                    <span style="font-weight: 500;">👋 ${currentUser.name}</span>
-                    <span class="role-badge">${roleText}</span>
-                    ${(currentUser.role === 'admin' || currentUser.role === 'editor') ?
-                        '<button onclick="window.location.href=\'/dashboard\'" style="background:#3498db; color:white; padding:5px 10px; border-radius:5px;">📊 Dashboard</button>' : ''}
-                    <button class="logout-btn" onclick="logout()">🚪 Đăng xuất</button>
-                `;
-            } else {
-                userInfoDiv.innerHTML = `
-                    <button class="login-btn" onclick="showLoginModal()">🔐 Đăng nhập</button>
-                `;
-            }
-        }
-
-        // Hiển thị modal đăng nhập
-        function showLoginModal() {
-            console.log('Hiển thị form đăng nhập');
-
-            const modalDiv = document.createElement('div');
-            modalDiv.className = 'modal';
-            modalDiv.innerHTML = `
-                <div class="modal-content">
-                    <h2>🔐 Đăng nhập</h2>
-                    <input type="text" id="loginUsername" placeholder="Tên đăng nhập" autocomplete="off" />
-                    <input type="password" id="loginPassword" placeholder="Mật khẩu" />
-                    <button onclick="loginWithAccount()" style="background: #3498db; color: white;">
-                        Đăng nhập
-                    </button>
-                    <hr style="margin: 20px 0;" />
-                    <div style="text-align: center; color: #666; font-size: 13px;">
-                        <p>📝 Tài khoản mặc định:</p>
-                        <p><strong>admin</strong> / <strong>admin</strong></p>
-                        <p style="font-size: 11px; margin-top: 10px;">(Mật khẩu mặc định cho user mới: 123456)</p>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" style="background: #95a5a6; color: white;">
-                        Đóng
-                    </button>
-                </div>
-            `;
-            document.body.appendChild(modalDiv);
-
-            // Focus vào ô username
-            setTimeout(() => {
-                document.getElementById('loginUsername')?.focus();
-            }, 100);
-
-            // Thêm sự kiện Enter
-            const passwordInput = document.getElementById('loginPassword');
-            if (passwordInput) {
-                passwordInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        loginWithAccount();
-                    }
-                });
-            }
-        }
-
-        // Đăng nhập với tài khoản
-        async function loginWithAccount() {
-            const username = document.getElementById('loginUsername')?.value.trim();
-            const password = document.getElementById('loginPassword')?.value;
-
-            if (!username || !password) {
-                alert('⚠️ Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu');
-                return;
-            }
-
-            console.log('Đang đăng nhập với:', username);
-
-            try {
-                const response = await fetch(API_BASE + '/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password })
-                });
-
-                const data = await response.json();
-                console.log('Phản hồi đăng nhập:', data);
-
-                if (data.success) {
-                    // Lưu thông tin
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    currentToken = data.token;
-                    currentUser = data.user;
-
-                    // Đóng modal
-                    const modal = document.querySelector('.modal');
-                    if (modal) modal.remove();
-
-                    // Cập nhật UI
-                    updateUserUI();
-
-                    // Tải lại sản phẩm
-                    await showProducts();
-
-                    alert(`✅ Đăng nhập thành công! Chào mừng ${data.user.name}`);
-                } else {
-                    alert('❌ Sai tên đăng nhập hoặc mật khẩu');
-                }
-            } catch (error) {
-                console.error('Lỗi đăng nhập:', error);
-                alert('❌ Lỗi kết nối đến server. Vui lòng thử lại sau.');
-            }
-        }
-
-        // Đăng xuất
-        async function logout() {
-            console.log('Đang đăng xuất...');
-
-            try {
-                if (currentToken) {
-                    await fetch(API_BASE + '/api/auth/logout', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${currentToken}`
-                        }
-                    });
-                }
-            } catch (error) {
-                console.error('Lỗi đăng xuất:', error);
-            }
-
-            // Xóa dữ liệu
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            currentUser = null;
-            currentToken = null;
-
-            // Cập nhật UI
-            updateUserUI();
-
-            // Tải lại sản phẩm
-            await showProducts();
-
-            alert('👋 Đã đăng xuất thành công!');
-        }
-
-        // Hiển thị danh sách sản phẩm
-        async function showProducts() {
-            const mainContent = document.getElementById('mainContent');
-            mainContent.innerHTML = '<div class="loading">🔄 Đang tải danh sách sản phẩm...</div>';
-
-            try {
-                const response = await fetch(API_BASE + '/api/products');
-                const data = await response.json();
-
-                if (!data.products || data.products.length === 0) {
-                    mainContent.innerHTML = `
-                        <div class="hero">
-                            <h1>🖨️ Máy in 3D chất lượng cao</h1>
-                            <p>Công nghệ in 3D tiên tiến nhất - Giá tốt nhất thị trường</p>
-                        </div>
-                        <div class="empty-state">
-                            <p>📦 Hiện tại chưa có sản phẩm nào.</p>
-                            <p>🔐 Vui lòng đăng nhập với tài khoản <strong>admin/admin</strong> để thêm sản phẩm.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                mainContent.innerHTML = `
-                    <div class="hero">
-                        <h1>🖨️ Máy in 3D chất lượng cao</h1>
-                        <p>Công nghệ in 3D tiên tiến nhất - Giá tốt nhất thị trường</p>
-                    </div>
-                    <h2>📦 Sản phẩm nổi bật</h2>
-                    <div class="products-grid" id="productsGrid"></div>
-                `;
-
-                const grid = document.getElementById('productsGrid');
-                grid.innerHTML = data.products.map(product => `
-                    <div class="product-card">
-                        <img src="${product.image_url || 'https://placehold.co/400x300/3498db/white?text=3D+Printer'}"
-                             class="product-image"
-                             alt="${product.name}"
-                             onerror="this.src='https://placehold.co/400x300/3498db/white?text=No+Image'">
-                        <div class="product-info">
-                            <div class="product-name">${product.name}</div>
-                            <div class="product-price">${product.price.toLocaleString()}đ</div>
-                            <p style="color: #666; font-size: 14px; margin: 10px 0;">
-                                ${product.description ? product.description.substring(0, 100) + '...' : 'Máy in 3D chất lượng cao'}
-                            </p>
-                            <p style="color: #27ae60; font-size: 13px; margin: 5px 0;">
-                                📦 Còn lại: ${product.stock} sản phẩm
-                            </p>
-                            ${currentUser ?
-                                `<button class="btn-buy" onclick="buyProduct('${product.id}', ${product.price})">🛒 Mua ngay</button>` :
-                                `<button class="btn-buy" onclick="showLoginModal()">🔐 Đăng nhập để mua</button>`}
-                        </div>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('Lỗi tải sản phẩm:', error);
-                mainContent.innerHTML = `
-                    <div class="hero">
-                        <h1>🖨️ Máy in 3D chất lượng cao</h1>
-                        <p>Công nghệ in 3D tiên tiến nhất - Giá tốt nhất thị trường</p>
-                    </div>
-                    <div class="error">
-                        ❌ Lỗi kết nối: ${error.message}<br/>
-                        Vui lòng kiểm tra server đã chạy chưa và thử lại.
-                    </div>
-                `;
-            }
-        }
-
-        // Hiển thị bài viết
-        async function showArticles() {
-            const mainContent = document.getElementById('mainContent');
-            mainContent.innerHTML = '<div class="loading">🔄 Đang tải bài viết...</div>';
-
-            try {
-                const response = await fetch(API_BASE + '/api/articles');
-                const data = await response.json();
-
-                if (!data.articles || data.articles.length === 0) {
-                    mainContent.innerHTML = `
-                        <h2>📝 Bài viết về công nghệ in 3D</h2>
-                        <div class="empty-state">
-                            <p>📝 Chưa có bài viết nào.</p>
-                            <p>🔐 Đăng nhập với tài khoản admin hoặc biên tập viên để thêm bài viết.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                mainContent.innerHTML = `
-                    <h2>📝 Bài viết về công nghệ in 3D</h2>
-                    <div class="articles-grid">
-                        ${data.articles.map(article => `
-                            <div class="article-card">
-                                <div class="article-title">${article.title}</div>
-                                <p style="color: #666; font-size: 13px; margin: 10px 0;">
-                                    ✍️ ${article.author} | ${new Date(article.created_at).toLocaleDateString('vi-VN')}
-                                </p>
-                                <p style="color: #555; line-height: 1.6;">
-                                    ${article.content ? article.content.substring(0, 200) + '...' : 'Nội dung đang cập nhật...'}
-                                </p>
-                                <button onclick="alert('📖 Tính năng đang phát triển')"
-                                        style="margin-top: 15px; padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                                    Đọc tiếp →
-                                </button>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            } catch (error) {
-                console.error('Lỗi tải bài viết:', error);
-                mainContent.innerHTML = `<div class="error">❌ Lỗi tải bài viết: ${error.message}</div>`;
-            }
-        }
-
-        // Mua sản phẩm
-        async function buyProduct(productId, price) {
-            if (!currentUser) {
-                showLoginModal();
-                return;
-            }
-
-            const quantity = prompt('📦 Nhập số lượng muốn mua:', '1');
-            if (!quantity) return;
-
-            const qty = parseInt(quantity);
-            if (isNaN(qty) || qty < 1) {
-                alert('⚠️ Số lượng không hợp lệ');
-                return;
-            }
-
-            const total = price * qty;
-            if (!confirm(`Xác nhận mua ${qty} sản phẩm với tổng tiền ${total.toLocaleString()}đ?`)) {
-                return;
-            }
-
-            try {
-                const response = await fetch(API_BASE + '/api/orders', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${currentToken}`
-                    },
-                    body: JSON.stringify({
-                        user_id: currentUser.id,
-                        product_id: productId,
-                        quantity: qty,
-                        total_price: total
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert(`✅ Đặt hàng thành công!\n💰 Tổng tiền: ${total.toLocaleString()}đ`);
-                    await showProducts(); // Tải lại để cập nhật số lượng
-                } else {
-                    alert('❌ Đặt hàng thất bại: ' + (data.detail || 'Lỗi không xác định'));
-                }
-            } catch (error) {
-                console.error('Lỗi đặt hàng:', error);
-                alert('❌ Lỗi đặt hàng: ' + error.message);
-            }
-        }
-
-        // Khởi chạy ứng dụng
-        init();
-    </script>
-</body>
-</html>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+button {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+input, textarea, select {
+    font-family: inherit;
+    font-size: 14px;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-card, .article-card {
+    animation: fadeIn 0.5s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .products-grid, .articles-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .hero h1 {
+        font-size: 24px;
+    }
+    
+    .hero p {
+        font-size: 14px;
+    }
+}
+
+/* Loading spinner */
+.loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    color: #666;
+}
+
+.loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-left: 10px;
+    border: 2px solid #3498db;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

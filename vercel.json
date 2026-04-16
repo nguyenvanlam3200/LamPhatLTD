@@ -16,12 +16,16 @@
       "dest": "api/index.py"
     },
     {
+      "src": "/admin",
+      "dest": "/public/admin.html"
+    },
+    {
       "src": "/dashboard",
-      "dest": "public/admin.html"
+      "dest": "/public/admin.html"
     },
     {
       "src": "/(.*)",
-      "dest": "public/index.html"
+      "dest": "/public/index.html"
     }
   ]
 }

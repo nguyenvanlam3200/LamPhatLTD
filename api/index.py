@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import hashlib
 import secrets
 from typing import Optional
+import json
 
 # Load environment variables
 load_dotenv()
@@ -114,6 +115,11 @@ def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 
+@app.get("/api/test")
+def test():
+    return {"status": "ok", "message": "API is working properly"}
+
+
 # Auth endpoints
 @app.post("/api/auth/login")
 async def login(user_login: UserLogin):
@@ -217,6 +223,16 @@ async def create_user(user: UserRegister):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.put("/api/users/{user_id}/role")
+async def update_user_role(user_id: str, role: str):
+    try:
+        supabase.table("users").update({"role": role}).eq("id", user_id).execute()
+        return {"success": True}
+    except Exception as e:
+        print(f"Update role error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.delete("/api/users/{user_id}")
 async def delete_user(user_id: str):
     try:
@@ -303,6 +319,16 @@ async def delete_article(article_id: str):
 
 
 # Orders endpoints
+@app.get("/api/orders")
+async def get_orders():
+    try:
+        result = supabase.table("orders").select("*").order("created_at", desc=True).execute()
+        return {"orders": result.data}
+    except Exception as e:
+        print(f"Get orders error: {e}")
+        return {"orders": []}
+
+
 @app.post("/api/orders")
 async def create_order(order: Order):
     try:
@@ -334,6 +360,8 @@ async def create_order(order: Order):
 @app.on_event("startup")
 def init_default_data():
     try:
+        # Create tables if not exists (Supabase will handle this)
+
         # Create admin user if not exists
         admin = supabase.table("users").select("*").eq("username", "admin").execute()
         if not admin.data:
@@ -351,25 +379,79 @@ def init_default_data():
         if not products.data:
             sample_products = [
                 {
-                    "name": "Ender 3 V3 SE",
+                    "name": "Ender 3 V3 SE - Máy in 3D cao cấp",
                     "price": 5990000,
-                    "description": "Máy in 3D Ender 3 V3 SE - Công nghệ in nhanh, độ chính xác cao",
-                    "image_url": "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=300",
-                    "stock": 10,
-                    "specs": "Công nghệ: FDM, Kích thước: 220x220x250mm"
+                    "description": "Máy in 3D Ender 3 V3 SE với công nghệ in nhanh, độ chính xác cao, phù hợp cho người mới bắt đầu và chuyên nghiệp. Tích hợp màn hình cảm ứng, tự động cân bằng giường in.",
+                    "image_url": "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=400",
+                    "stock": 15,
+                    "specs": "🔧 Công nghệ: FDM\n📏 Kích thước: 220x220x250mm\n⚡ Tốc độ: 250mm/s\n🖥️ Màn hình: Cảm ứng 4.3 inch"
                 },
                 {
-                    "name": "Creality K1",
+                    "name": "Creality K1 - Tốc độ 600mm/s",
                     "price": 15990000,
-                    "description": "Máy in 3D tốc độ cao 600mm/s, in tự động",
-                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=300",
+                    "description": "Máy in 3D tốc độ cao 600mm/s, in tự động, AI camera giám sát, phù hợp cho sản xuất và in ấn chuyên nghiệp.",
+                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400",
+                    "stock": 8,
+                    "specs": "⚡ Tốc độ: 600mm/s\n🤖 AI camera\n📱 Điều khiển từ xa\n🖨️ Kích thước: 300x300x300mm"
+                },
+                {
+                    "name": "Anycubic Photon Mono 4K",
+                    "price": 8990000,
+                    "description": "Máy in 3D resin độ phân giải 4K siêu mịn, chi tiết đến từng micromet, lý tưởng cho in mô hình, trang sức, nha khoa.",
+                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400",
+                    "stock": 12,
+                    "specs": "🖨️ Công nghệ: SLA/MSLA\n📐 Độ phân giải: 4K (3840x2160)\n📏 Kích thước: 130x80x165mm\n🎨 Độ chính xác: 0.01mm"
+                },
+                {
+                    "name": "Bambu Lab X1 Carbon",
+                    "price": 39990000,
+                    "description": "Máy in 3D thông minh hàng đầu thế giới, tốc độ siêu cao, in đa màu, AI phát hiện lỗi in.",
+                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400",
                     "stock": 5,
-                    "specs": "Tốc độ: 600mm/s, AI camera"
+                    "specs": "⚡ Tốc độ: 500mm/s\n🎨 In đa màu (AMS)\n🤖 AI phát hiện lỗi\n📏 Kích thước: 256x256x256mm"
+                },
+                {
+                    "name": "Prusa MK4 - Cao cấp",
+                    "price": 24990000,
+                    "description": "Máy in 3D đến từ Cộng hòa Séc, độ bền cao, chất lượng in tuyệt hảo, được cộng đồng yêu thích.",
+                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400",
+                    "stock": 7,
+                    "specs": "🏭 Thương hiệu: Prusa\n📏 Kích thước: 250x210x220mm\n⚡ Tự động cân bằng\n🖥️ Màn hình cảm ứng màu"
+                },
+                {
+                    "name": "Filament PLA 1.75mm 1kg",
+                    "price": 350000,
+                    "description": "Nhựa in 3D PLA chất lượng cao, đường kính 1.75mm, trọng lượng 1kg, nhiều màu sắc, thân thiện môi trường.",
+                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400",
+                    "stock": 50,
+                    "specs": "📏 Đường kính: 1.75mm ± 0.02\n⚖️ Trọng lượng: 1kg\n🌡️ Nhiệt độ in: 190-220°C\n🌱 Sinh học phân hủy"
                 }
             ]
             for product in sample_products:
                 supabase.table("products").insert(product).execute()
-            print("✅ Created sample products")
+            print("✅ Created 6 sample products")
+
+        # Create sample articles if none exist
+        articles = supabase.table("articles").select("*").limit(1).execute()
+        if not articles.data:
+            sample_articles = [
+                {
+                    "title": "Hướng dẫn chọn máy in 3D cho người mới",
+                    "content": "Bạn đang phân vân không biết nên chọn máy in 3D nào? Bài viết này sẽ giúp bạn hiểu rõ các tiêu chí quan trọng như công nghệ in (FDM hay Resin), kích thước vùng in, độ phân giải, ngân sách và mục đích sử dụng. FDM phù hợp cho in đồ gia dụng, cơ khí, resin cho mô hình chi tiết. Hãy xác định nhu cầu trước khi mua nhé!",
+                    "author": "Admin",
+                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400"
+                },
+                {
+                    "title": "Top 5 phần mềm thiết kế 3D miễn phí tốt nhất",
+                    "content": "Khám phá các phần mềm thiết kế 3D miễn phí như Tinkercad (dễ dùng cho người mới), Fusion 360 (mạnh mẽ cho cơ khí), Blender (tạo hình nghệ thuật), FreeCAD (mã nguồn mở), SketchUp Free (thiết kế nội thất). Mỗi phần mềm có ưu điểm riêng, hãy chọn theo mục đích của bạn.",
+                    "author": "Editor",
+                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400"
+                }
+            ]
+            for article in sample_articles:
+                supabase.table("articles").insert(article).execute()
+            print("✅ Created sample articles")
+
     except Exception as e:
         print(f"Init data error: {e}")
 
