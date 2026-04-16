@@ -4,8 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Printer Store - Máy in 3D chính hãng</title>
-    <link rel="stylesheet" href="style.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: #3498db;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .login-btn, .logout-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .login-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .role-badge {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #f39c12;
+            color: white;
+        }
+
         .hero {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -14,35 +97,43 @@
             border-radius: 20px;
             margin-bottom: 40px;
         }
+
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 25px;
             margin-top: 30px;
         }
+
         .product-card {
             background: white;
             border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: transform 0.3s;
+            cursor: pointer;
         }
+
         .product-card:hover {
             transform: translateY(-5px);
         }
+
         .product-image {
             width: 100%;
             height: 200px;
             object-fit: cover;
         }
+
         .product-info {
             padding: 20px;
         }
+
         .product-price {
             font-size: 24px;
             color: #e74c3c;
             font-weight: bold;
         }
+
         .btn-buy {
             background: #27ae60;
             color: white;
@@ -52,110 +143,146 @@
             cursor: pointer;
             width: 100%;
             margin-top: 10px;
+            font-size: 16px;
         }
+
         .articles-section {
             margin-top: 60px;
         }
+
         .articles-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 25px;
             margin-top: 20px;
         }
+
         .article-card {
             background: white;
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .navbar {
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
             background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 15px 0;
-            margin-bottom: 30px;
+            padding: 30px;
+            border-radius: 15px;
+            width: 400px;
+            max-width: 90%;
         }
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .nav-links a {
-            margin-left: 20px;
-            text-decoration: none;
-            color: #333;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .login-btn, .logout-btn {
-            padding: 8px 16px;
-            border: none;
+
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            cursor: pointer;
         }
-        .login-btn {
-            background: #3498db;
-            color: white;
+
+        button {
+            transition: all 0.3s ease;
         }
-        .logout-btn {
-            background: #e74c3c;
-            color: white;
+
+        button:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
         }
-        .role-badge {
-            font-size: 12px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            background: #f39c12;
-            color: white;
+
+        @media (max-width: 768px) {
+            .products-grid, .articles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <div class="navbar">
         <div class="container nav-container">
-            <h1>🖨️ 3D Printer Store</h1>
+            <h1 style="cursor:pointer" onclick="showProducts()">🖨️ 3D Printer Store</h1>
             <div class="nav-links">
-                <a href="/">Trang chủ</a>
-                <a href="#" onclick="showProducts()">Sản phẩm</a>
-                <a href="#" onclick="showArticles()">Bài viết</a>
+                <a onclick="showProducts()">🏠 Trang chủ</a>
+                <a onclick="showProducts()">📦 Sản phẩm</a>
+                <a onclick="showArticles()">📝 Bài viết</a>
                 <div id="userInfo" class="user-info"></div>
             </div>
         </div>
     </div>
 
     <div class="container">
-        <div id="mainContent"></div>
+        <div id="mainContent">
+            <div class="loading">Đang tải...</div>
+        </div>
     </div>
 
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         let currentUser = null;
         let currentToken = null;
 
-        // Kiểm tra đăng nhập
+        // API base URL
+        const API_BASE = window.location.origin;
+
+        // Kiểm tra đăng nhập khi load trang
         async function checkAuth() {
             const token = localStorage.getItem('token');
-            if (token) {
+            const userStr = localStorage.getItem('user');
+
+            if (token && userStr) {
                 currentToken = token;
-                // Giả lập lấy user info từ token
-                const userStr = localStorage.getItem('user');
-                if (userStr) {
-                    currentUser = JSON.parse(userStr);
-                    updateUserUI();
-                }
+                currentUser = JSON.parse(userStr);
+                updateUserUI();
             }
-            showProducts();
+
+            // Tải sản phẩm mặc định
+            await showProducts();
         }
 
         function updateUserUI() {
             const userInfoDiv = document.getElementById('userInfo');
             if (currentUser) {
+                let roleText = '';
+                if (currentUser.role === 'admin') roleText = 'Quản trị viên';
+                else if (currentUser.role === 'editor') roleText = 'Biên tập viên';
+                else roleText = 'Khách hàng';
+
                 userInfoDiv.innerHTML = `
-                    <span>👋 ${currentUser.name}</span>
-                    <span class="role-badge">${currentUser.role === 'admin' ? 'Quản trị viên' : currentUser.role === 'editor' ? 'Biên tập viên' : 'Khách hàng'}</span>
-                    ${currentUser.role === 'admin' || currentUser.role === 'editor' ? '<a href="/dashboard" style="color:#3498db">📊 Dashboard</a>' : ''}
+                    <span>👋 Xin chào, ${currentUser.name}</span>
+                    <span class="role-badge">${roleText}</span>
+                    ${(currentUser.role === 'admin' || currentUser.role === 'editor') ?
+                        '<a href="/dashboard" style="color:#3498db; cursor:pointer">📊 Dashboard</a>' : ''}
                     <button class="logout-btn" onclick="logout()">Đăng xuất</button>
                 `;
             } else {
@@ -166,169 +293,227 @@
         }
 
         function showLoginModal() {
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.5); display: flex; justify-content: center;
-                align-items: center; z-index: 1000;
-            `;
-            modal.innerHTML = `
-                <div style="background: white; padding: 30px; border-radius: 15px; width: 400px;">
-                    <h2>Đăng nhập</h2>
-                    <input type="text" id="loginUsername" placeholder="Tên đăng nhập" style="width:100%; padding:10px; margin:10px 0">
-                    <input type="password" id="loginPassword" placeholder="Mật khẩu" style="width:100%; padding:10px; margin:10px 0">
-                    <button onclick="loginWithAccount()" style="width:100%; padding:10px; background:#3498db; color:white; border:none; border-radius:5px">Đăng nhập</button>
-                    <hr style="margin:20px 0">
-                    <div id="googleButton" style="display:flex; justify-content:center"></div>
-                    <button onclick="this.parentElement.parentElement.remove()" style="margin-top:10px; width:100%; padding:10px">Đóng</button>
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'modal';
+            modalDiv.innerHTML = `
+                <div class="modal-content">
+                    <h2 style="margin-bottom:20px">Đăng nhập</h2>
+                    <input type="text" id="loginUsername" placeholder="Tên đăng nhập (admin)" />
+                    <input type="password" id="loginPassword" placeholder="Mật khẩu (admin)" />
+                    <button onclick="loginWithAccount()" style="width:100%; padding:10px; background:#3498db; color:white; border:none; border-radius:5px; margin-top:10px">
+                        Đăng nhập
+                    </button>
+                    <hr style="margin:20px 0" />
+                    <p style="text-align:center; color:#666; font-size:14px">
+                        👤 Tài khoản mặc định: admin / admin
+                    </p>
+                    <button onclick="this.parentElement.parentElement.remove()" style="margin-top:10px; width:100%; padding:10px; background:#999; color:white; border:none; border-radius:5px">
+                        Đóng
+                    </button>
                 </div>
             `;
-            document.body.appendChild(modal);
+            document.body.appendChild(modalDiv);
 
-            // Google Sign-In
-            google.accounts.id.initialize({
-                client_id: 'YOUR_GOOGLE_CLIENT_ID',
-                callback: handleGoogleLogin
+            // Thêm sự kiện enter
+            document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loginWithAccount();
             });
-            google.accounts.id.renderButton(
-                document.getElementById('googleButton'),
-                { theme: 'outline', size: 'large', width: '100%' }
-            );
         }
 
         async function loginWithAccount() {
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
 
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                currentUser = data.user;
-                currentToken = data.token;
-                updateUserUI();
-                document.querySelector('.modal')?.remove();
-                showProducts();
-                alert('Đăng nhập thành công!');
-            } else {
-                alert('Sai tên đăng nhập hoặc mật khẩu');
+            if (!username || !password) {
+                alert('Vui lòng nhập tên đăng nhập và mật khẩu');
+                return;
             }
-        }
 
-        async function handleGoogleLogin(response) {
-            const res = await fetch('/api/auth/google', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ credential: response.credential })
-            });
-            const data = await res.json();
-            if (data.success) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                currentUser = data.user;
-                updateUserUI();
-                document.querySelector('.modal')?.remove();
-                showProducts();
+            try {
+                const response = await fetch(API_BASE + '/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    currentUser = data.user;
+                    currentToken = data.token;
+                    updateUserUI();
+                    document.querySelector('.modal')?.remove();
+                    await showProducts();
+                    alert('Đăng nhập thành công!');
+                } else {
+                    alert('Sai tên đăng nhập hoặc mật khẩu');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Lỗi kết nối đến server. Vui lòng thử lại sau.');
             }
         }
 
         async function logout() {
-            await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            });
+            try {
+                if (currentToken) {
+                    await fetch(API_BASE + '/api/auth/logout', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    });
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             currentUser = null;
+            currentToken = null;
             updateUserUI();
-            showProducts();
+            await showProducts();
+            alert('Đã đăng xuất');
         }
 
         async function showProducts() {
-            const res = await fetch('/api/products');
-            const data = await res.json();
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = '<div class="loading">Đang tải sản phẩm...</div>';
 
-            document.getElementById('mainContent').innerHTML = `
-                <div class="hero">
-                    <h1>🖨️ Máy in 3D chất lượng cao</h1>
-                    <p>Công nghệ in 3D tiên tiến nhất - Giá tốt nhất thị trường</p>
-                </div>
-                <h2>Sản phẩm nổi bật</h2>
-                <div class="products-grid" id="productsGrid"></div>
-            `;
+            try {
+                const response = await fetch(API_BASE + '/api/products');
+                const data = await response.json();
 
-            const grid = document.getElementById('productsGrid');
-            grid.innerHTML = data.products.map(p => `
-                <div class="product-card">
-                    <img src="${p.image_url || 'https://via.placeholder.com/300x200'}" class="product-image" alt="${p.name}">
-                    <div class="product-info">
-                        <h3>${p.name}</h3>
-                        <p>${p.description.substring(0, 100)}...</p>
-                        <div class="product-price">${p.price.toLocaleString()}đ</div>
-                        <p>Còn lại: ${p.stock} sản phẩm</p>
-                        ${currentUser ? `<button class="btn-buy" onclick="buyProduct('${p.id}', ${p.price})">Mua ngay</button>` : '<button class="btn-buy" onclick="showLoginModal()">Đăng nhập để mua</button>'}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function showArticles() {
-            const res = await fetch('/api/articles');
-            const data = await res.json();
-
-            document.getElementById('mainContent').innerHTML = `
-                <h2>📝 Bài viết về công nghệ in 3D</h2>
-                <div class="articles-grid">
-                    ${data.articles.map(a => `
-                        <div class="article-card">
-                            <h3>${a.title}</h3>
-                            <p style="color:#666">✍️ ${a.author} | ${new Date(a.created_at).toLocaleDateString('vi-VN')}</p>
-                            <p>${a.content.substring(0, 200)}...</p>
-                            <button onclick="showFullArticle('${a.id}')">Đọc tiếp →</button>
+                if (!data.products || data.products.length === 0) {
+                    mainContent.innerHTML = `
+                        <div class="hero">
+                            <h1>🖨️ Máy in 3D chất lượng cao</h1>
+                            <p>Chưa có sản phẩm nào. Hãy đăng nhập với tài khoản admin để thêm sản phẩm mới!</p>
                         </div>
-                    `).join('')}
-                </div>
-            `;
-        }
+                        <div style="text-align:center; padding:40px">
+                            <p>📦 Hiện tại chưa có sản phẩm nào.</p>
+                            <p>Vui lòng đăng nhập với tài khoản <strong>admin/admin</strong> để thêm sản phẩm mới.</p>
+                        </div>
+                    `;
+                    return;
+                }
 
-        async function buyProduct(productId, price) {
-            const quantity = prompt('Nhập số lượng:', '1');
-            if (!quantity) return;
+                mainContent.innerHTML = `
+                    <div class="hero">
+                        <h1>🖨️ Máy in 3D chất lượng cao</h1>
+                        <p>Công nghệ in 3D tiên tiến nhất - Giá tốt nhất thị trường</p>
+                    </div>
+                    <h2>Sản phẩm nổi bật</h2>
+                    <div class="products-grid" id="productsGrid"></div>
+                `;
 
-            const res = await fetch('/api/orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${currentToken}`
-                },
-                body: JSON.stringify({
-                    user_id: currentUser.id,
-                    product_id: productId,
-                    quantity: parseInt(quantity),
-                    total_price: price * parseInt(quantity)
-                })
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                alert('Đặt hàng thành công!');
-                showProducts();
-            } else {
-                alert('Đặt hàng thất bại: ' + data.detail);
+                const grid = document.getElementById('productsGrid');
+                grid.innerHTML = data.products.map(p => `
+                    <div class="product-card">
+                        <img src="${p.image_url || 'https://placehold.co/300x200/3498db/white?text=3D+Printer'}" class="product-image" alt="${p.name}">
+                        <div class="product-info">
+                            <h3>${p.name}</h3>
+                            <p>${p.description ? p.description.substring(0, 100) : 'Máy in 3D chất lượng cao'}</p>
+                            <div class="product-price">${p.price.toLocaleString()}đ</div>
+                            <p style="color:#666; font-size:14px">Còn lại: ${p.stock} sản phẩm</p>
+                            ${currentUser ?
+                                `<button class="btn-buy" onclick="buyProduct('${p.id}', ${p.price})">🛒 Mua ngay</button>` :
+                                `<button class="btn-buy" onclick="showLoginModal()">🔐 Đăng nhập để mua</button>`}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Load products error:', error);
+                mainContent.innerHTML = `
+                    <div class="hero">
+                        <h1>🖨️ Máy in 3D chất lượng cao</h1>
+                        <p>Đang có lỗi kết nối. Vui lòng thử lại sau!</p>
+                    </div>
+                    <div class="error">Lỗi: ${error.message}</div>
+                `;
             }
         }
 
-        function showFullArticle(id) {
-            // TODO: Implement full article view
-            alert('Tính năng đang phát triển');
+        async function showArticles() {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = '<div class="loading">Đang tải bài viết...</div>';
+
+            try {
+                const response = await fetch(API_BASE + '/api/articles');
+                const data = await response.json();
+
+                if (!data.articles || data.articles.length === 0) {
+                    mainContent.innerHTML = `
+                        <h2>📝 Bài viết về công nghệ in 3D</h2>
+                        <div style="text-align:center; padding:40px">
+                            <p>📝 Chưa có bài viết nào.</p>
+                            <p>Đăng nhập với tài khoản admin hoặc biên tập viên để thêm bài viết mới.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                mainContent.innerHTML = `
+                    <h2>📝 Bài viết về công nghệ in 3D</h2>
+                    <div class="articles-grid">
+                        ${data.articles.map(a => `
+                            <div class="article-card">
+                                <h3>${a.title}</h3>
+                                <p style="color:#666; font-size:14px">✍️ ${a.author} | ${new Date(a.created_at).toLocaleDateString('vi-VN')}</p>
+                                <p>${a.content ? a.content.substring(0, 200) : 'Nội dung đang cập nhật...'}</p>
+                                <button onclick="alert('Chức năng đang phát triển')" style="margin-top:10px; padding:8px 16px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer">
+                                    Đọc tiếp →
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Load articles error:', error);
+                mainContent.innerHTML = `<div class="error">Lỗi tải bài viết: ${error.message}</div>`;
+            }
         }
 
+        async function buyProduct(productId, price) {
+            const quantity = prompt('Nhập số lượng muốn mua:', '1');
+            if (!quantity) return;
+
+            const qty = parseInt(quantity);
+            if (isNaN(qty) || qty < 1) {
+                alert('Số lượng không hợp lệ');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_BASE + '/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({
+                        user_id: currentUser.id,
+                        product_id: productId,
+                        quantity: qty,
+                        total_price: price * qty
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert(`Đặt hàng thành công! Tổng tiền: ${(price * qty).toLocaleString()}đ`);
+                    await showProducts();
+                } else {
+                    alert('Đặt hàng thất bại: ' + (data.detail || 'Lỗi không xác định'));
+                }
+            } catch (error) {
+                console.error('Buy error:', error);
+                alert('Lỗi đặt hàng: ' + error.message);
+            }
+        }
+
+        // Khởi tạo khi trang load
         checkAuth();
     </script>
 </body>
