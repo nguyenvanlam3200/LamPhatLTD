@@ -1,124 +1,737 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị hệ thống - 3D Printer Store</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f5f5f5;
-    color: #333;
-}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
+        .admin-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
 
-button {
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
+        .sidebar {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+            color: white;
+            padding: 25px 15px;
+        }
 
-button:hover {
-    opacity: 0.85;
-    transform: translateY(-1px);
-}
+        .sidebar h3 {
+            margin-bottom: 25px;
+            font-size: 20px;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+        }
 
-button:active {
-    transform: translateY(0);
-}
+        .sidebar button {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: #34495e;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: left;
+            transition: all 0.3s;
+        }
 
-input, textarea, select {
-    font-family: inherit;
-    font-size: 14px;
-}
+        .sidebar button:hover {
+            background: #3498db;
+            transform: translateX(5px);
+        }
 
-input:focus, textarea:focus, select:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
+        .content {
+            padding: 30px;
+            background: #f5f5f5;
+        }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
+        .form-group {
+            margin-bottom: 15px;
+        }
 
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
 
-::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-}
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
 
-/* Animation */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
 
-.product-card, .article-card {
-    animation: fadeIn 0.5s ease;
-}
+        th {
+            background: #3498db;
+            color: white;
+            font-weight: bold;
+        }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .products-grid, .articles-grid {
-        grid-template-columns: 1fr;
-    }
+        tr:hover {
+            background: #f5f5f5;
+        }
 
-    .nav-container {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .hero h1 {
-        font-size: 24px;
-    }
-    
-    .hero p {
-        font-size: 14px;
-    }
-}
+        .btn-edit, .btn-delete {
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 12px;
+        }
 
-/* Loading spinner */
-.loading {
-    text-align: center;
-    padding: 40px;
-    font-size: 18px;
-    color: #666;
-}
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
 
-.loading::after {
-    content: '';
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    margin-left: 10px;
-    border: 2px solid #3498db;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-}
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
+        .btn-edit:hover, .btn-delete:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .add-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .add-form h3 {
+            margin-bottom: 20px;
+            color: #333;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+
+        .btn-submit {
+            background: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background: #229954;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="sidebar">
+            <h3>🖨️ 3D Printer Admin</h3>
+            <button onclick="showDashboard()">📊 Dashboard</button>
+            <button onclick="showUsers()">👥 Quản lý User</button>
+            <button onclick="showProducts()">📦 Quản lý Sản phẩm</button>
+            <button onclick="showArticles()">📝 Quản lý Bài viết</button>
+            <button onclick="showOrders()">📊 Quản lý Đơn hàng</button>
+            <button onclick="changePassword()">🔑 Đổi mật khẩu</button>
+            <button onclick="logout()" style="background:#e74c3c; margin-top:20px">🚪 Đăng xuất</button>
+        </div>
+        <div class="content" id="adminContent">
+            <div class="loading">🔄 Đang tải...</div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let currentToken = null;
+
+        async function checkAdminAuth() {
+            const token = localStorage.getItem('token');
+            const userStr = localStorage.getItem('user');
+
+            if (!token || !userStr) {
+                alert('⚠️ Vui lòng đăng nhập để truy cập trang quản trị');
+                window.location.href = '/';
+                return false;
+            }
+
+            currentUser = JSON.parse(userStr);
+            currentToken = token;
+
+            if (currentUser.role !== 'admin' && currentUser.role !== 'editor') {
+                alert('❌ Bạn không có quyền truy cập trang quản trị');
+                window.location.href = '/';
+                return false;
+            }
+
+            return true;
+        }
+
+        async function showDashboard() {
+            try {
+                const productsRes = await fetch('/api/products');
+                const usersRes = await fetch('/api/users');
+                const articlesRes = await fetch('/api/articles');
+                const ordersRes = await fetch('/api/orders');
+
+                const products = await productsRes.json();
+                const users = await usersRes.json();
+                const articles = await articlesRes.json();
+                const orders = await ordersRes.json();
+
+                document.getElementById('adminContent').innerHTML = `
+                    <h2>📊 Tổng quan hệ thống</h2>
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-number">${products.products?.length || 0}</div>
+                            <div class="stat-label">Sản phẩm</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${users.users?.length || 0}</div>
+                            <div class="stat-label">Người dùng</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${articles.articles?.length || 0}</div>
+                            <div class="stat-label">Bài viết</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${orders.orders?.length || 0}</div>
+                            <div class="stat-label">Đơn hàng</div>
+                        </div>
+                    </div>
+                    <div class="add-form">
+                        <h3>🎉 Chào mừng bạn đến với trang quản trị</h3>
+                        <p>Sử dụng menu bên trái để quản lý:</p>
+                        <ul style="margin-top: 10px; margin-left: 20px;">
+                            <li>👥 Quản lý người dùng: Thêm, sửa, xóa tài khoản</li>
+                            <li>📦 Quản lý sản phẩm: Thêm, sửa, xóa sản phẩm</li>
+                            <li>📝 Quản lý bài viết: Đăng bài viết mới</li>
+                            <li>📊 Quản lý đơn hàng: Xem và xử lý đơn hàng</li>
+                        </ul>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Lỗi tải dashboard:', error);
+                document.getElementById('adminContent').innerHTML = `<div class="error">❌ Lỗi tải dữ liệu: ${error.message}</div>`;
+            }
+        }
+
+        async function showUsers() {
+            try {
+                const res = await fetch('/api/users');
+                const data = await res.json();
+
+                document.getElementById('adminContent').innerHTML = `
+                    <h2>👥 Quản lý người dùng</h2>
+                    <div class="add-form">
+                        <h3>➕ Thêm user mới</h3>
+                        <div class="form-group">
+                            <label>Họ tên</label>
+                            <input type="text" id="newUserName" placeholder="VD: Nguyễn Văn A">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="newUserEmail" placeholder="example@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Vai trò</label>
+                            <select id="newUserRole">
+                                <option value="customer">Khách hàng</option>
+                                <option value="editor">Biên tập viên</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <button class="btn-submit" onclick="createUser()">➕ Thêm user</button>
+                        <p style="margin-top: 10px; font-size: 12px; color: #666;">💡 Mật khẩu mặc định: <strong>123456</strong></p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>Tên</th><th>Email</th><th>Username</th><th>Vai trò</th><th>Ngày tạo</th><th>Thao tác</th>
+                        </thead>
+                        <tbody>
+                            ${data.users.map(u => `
+                                <tr>
+                                    <td>${u.name}</td>
+                                    <td>${u.email}</td>
+                                    <td>${u.username}</td>
+                                    <td>
+                                        <select onchange="updateRole('${u.id}', this.value)" style="padding:5px;">
+                                            <option value="customer" ${u.role === 'customer' ? 'selected' : ''}>Khách hàng</option>
+                                            <option value="editor" ${u.role === 'editor' ? 'selected' : ''}>Biên tập viên</option>
+                                            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                        </select>
+                                    </td>
+                                    <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
+                                    <td><button class="btn-delete" onclick="deleteUser('${u.id}')">🗑️ Xóa</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Lỗi tải users:', error);
+                document.getElementById('adminContent').innerHTML = `<div class="error">❌ Lỗi tải danh sách user: ${error.message}</div>`;
+            }
+        }
+
+        async function showProducts() {
+            try {
+                const res = await fetch('/api/products');
+                const data = await res.json();
+
+                document.getElementById('adminContent').innerHTML = `
+                    <h2>📦 Quản lý sản phẩm</h2>
+                    <div class="add-form">
+                        <h3>➕ Thêm sản phẩm mới</h3>
+                        <div class="form-group"><label>Tên sản phẩm *</label><input type="text" id="prodName" placeholder="VD: Máy in 3D Ender 3"></div>
+                        <div class="form-group"><label>Giá (VNĐ) *</label><input type="number" id="prodPrice" placeholder="5990000"></div>
+                        <div class="form-group"><label>Mô tả</label><textarea id="prodDesc" rows="3" placeholder="Mô tả chi tiết sản phẩm..."></textarea></div>
+                        <div class="form-group"><label>URL hình ảnh</label><input type="text" id="prodImage" placeholder="https://example.com/image.jpg"></div>
+                        <div class="form-group"><label>Số lượng tồn kho *</label><input type="number" id="prodStock" placeholder="10"></div>
+                        <div class="form-group"><label>Thông số kỹ thuật</label><textarea id="prodSpecs" rows="3" placeholder="Thông số chi tiết..."></textarea></div>
+                        <button class="btn-submit" onclick="addProduct()">➕ Thêm sản phẩm</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>Tên</th><th>Giá</th><th>Tồn kho</th><th>Ngày thêm</th><th>Thao tác</th>
+                        </thead>
+                        <tbody>
+                            ${data.products.map(p => `
+                                <tr>
+                                    <td>${p.name}</td>
+                                    <td>${p.price.toLocaleString()}đ</td>
+                                    <td>${p.stock}</td>
+                                    <td>${p.created_at ? new Date(p.created_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
+                                    <td><button class="btn-delete" onclick="deleteProduct('${p.id}')">🗑️ Xóa</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Lỗi tải products:', error);
+                document.getElementById('adminContent').innerHTML = `<div class="error">❌ Lỗi tải danh sách sản phẩm: ${error.message}</div>`;
+            }
+        }
+
+        async function showArticles() {
+            try {
+                const res = await fetch('/api/articles');
+                const data = await res.json();
+
+                document.getElementById('adminContent').innerHTML = `
+                    <h2>📝 Quản lý bài viết</h2>
+                    <div class="add-form">
+                        <h3>✏️ Viết bài mới</h3>
+                        <div class="form-group"><label>Tiêu đề *</label><input type="text" id="articleTitle" placeholder="Tiêu đề bài viết"></div>
+                        <div class="form-group"><label>Nội dung *</label><textarea id="articleContent" rows="5" placeholder="Nội dung bài viết..."></textarea></div>
+                        <div class="form-group"><label>URL hình ảnh</label><input type="text" id="articleImage" placeholder="https://example.com/image.jpg"></div>
+                        <button class="btn-submit" onclick="addArticle()">📝 Đăng bài</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>Tiêu đề</th><th>Tác giả</th><th>Ngày đăng</th><th>Thao tác</th>
+                        </thead>
+                        <tbody>
+                            ${data.articles.map(a => `
+                                <tr>
+                                    <td>${a.title}</td>
+                                    <td>${a.author}</td>
+                                    <td>${a.created_at ? new Date(a.created_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
+                                    <td><button class="btn-delete" onclick="deleteArticle('${a.id}')">🗑️ Xóa</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Lỗi tải articles:', error);
+                document.getElementById('adminContent').innerHTML = `<div class="error">❌ Lỗi tải danh sách bài viết: ${error.message}</div>`;
+            }
+        }
+
+        async function showOrders() {
+            try {
+                const res = await fetch('/api/orders');
+                const data = await res.json();
+
+                if (!data.orders || data.orders.length === 0) {
+                    document.getElementById('adminContent').innerHTML = `
+                        <h2>📊 Quản lý đơn hàng</h2>
+                        <div class="empty-state" style="text-align:center; padding:60px; background:white; border-radius:10px;">
+                            <p>📦 Hiện tại chưa có đơn hàng nào.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                document.getElementById('adminContent').innerHTML = `
+                    <h2>📊 Quản lý đơn hàng</h2>
+                    <table>
+                        <thead>
+                            <tr><th>ID</th><th>User ID</th><th>Sản phẩm ID</th><th>Số lượng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày đặt</th>
+                        </thead>
+                        <tbody>
+                            ${data.orders.map(o => `
+                                <tr>
+                                    <td>${o.id.substring(0, 8)}...</td>
+                                    <td>${o.user_id.substring(0, 8)}...</td>
+                                    <td>${o.product_id.substring(0, 8)}...</td>
+                                    <td>${o.quantity}</td>
+                                    <td>${o.total_price.toLocaleString()}đ</td>
+                                    <td><span style="padding:3px 8px; background:#f39c12; color:white; border-radius:5px;">${o.status}</span></td>
+                                    <td>${o.created_at ? new Date(o.created_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Lỗi tải orders:', error);
+                document.getElementById('adminContent').innerHTML = `<div class="error">❌ Lỗi tải danh sách đơn hàng: ${error.message}</div>`;
+            }
+        }
+
+        function changePassword() {
+            document.getElementById('adminContent').innerHTML = `
+                <h2>🔑 Đổi mật khẩu</h2>
+                <div class="add-form" style="max-width:500px">
+                    <div class="form-group">
+                        <label>Tên đăng nhập</label>
+                        <input type="text" id="cpUsername" value="${currentUser.username}" readonly style="background:#f5f5f5">
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu cũ *</label>
+                        <input type="password" id="oldPass" placeholder="Nhập mật khẩu cũ">
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu mới *</label>
+                        <input type="password" id="newPass" placeholder="Nhập mật khẩu mới">
+                    </div>
+                    <div class="form-group">
+                        <label>Xác nhận mật khẩu mới *</label>
+                        <input type="password" id="confirmPass" placeholder="Nhập lại mật khẩu mới">
+                    </div>
+                    <button class="btn-submit" onclick="submitChangePassword()">🔄 Đổi mật khẩu</button>
+                </div>
+            `;
+        }
+
+        async function submitChangePassword() {
+            const username = document.getElementById('cpUsername').value;
+            const oldPass = document.getElementById('oldPass').value;
+            const newPass = document.getElementById('newPass').value;
+            const confirmPass = document.getElementById('confirmPass').value;
+
+            if (!oldPass || !newPass) {
+                alert('⚠️ Vui lòng nhập đầy đủ mật khẩu cũ và mới');
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                alert('⚠️ Mật khẩu mới và xác nhận không khớp');
+                return;
+            }
+
+            if (newPass.length < 6) {
+                alert('⚠️ Mật khẩu mới phải có ít nhất 6 ký tự');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, old_password: oldPass, new_password: newPass })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
+                    logout();
+                } else {
+                    alert('❌ ' + (data.detail || 'Đổi mật khẩu thất bại'));
+                }
+            } catch (error) {
+                console.error('Lỗi đổi mật khẩu:', error);
+                alert('❌ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function createUser() {
+            const name = document.getElementById('newUserName').value.trim();
+            const email = document.getElementById('newUserEmail').value.trim();
+            const role = document.getElementById('newUserRole').value;
+
+            if (!name || !email) {
+                alert('⚠️ Vui lòng nhập đầy đủ họ tên và email');
+                return;
+            }
+
+            if (!email.includes('@')) {
+                alert('⚠️ Email không hợp lệ');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, role })
+                });
+
+                if (res.ok) {
+                    alert('✅ Thêm user thành công! Mật khẩu mặc định: 123456');
+                    showUsers();
+                } else {
+                    const error = await res.json();
+                    alert('❌ Thêm user thất bại: ' + (error.detail || 'Lỗi không xác định'));
+                }
+            } catch (error) {
+                console.error('Lỗi tạo user:', error);
+                alert('❌ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function updateRole(userId, role) {
+            try {
+                const res = await fetch(`/api/users/${userId}/role?role=${role}`, { method: 'PUT' });
+                if (res.ok) {
+                    alert('✅ Cập nhật vai trò thành công');
+                } else {
+                    alert('❌ Cập nhật thất bại');
+                }
+            } catch (error) {
+                console.error('Lỗi update role:', error);
+                alert('❌ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('⚠️ Bạn có chắc chắn muốn xóa user này?\nHành động này không thể khôi phục!')) return;
+
+            try {
+                const res = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('✅ Đã xóa user thành công');
+                    showUsers();
+                } else {
+                    alert('❌ Xóa user thất bại');
+                }
+            } catch (error) {
+                console.error('Lỗi xóa user:', error);
+                alert('❌ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function addProduct() {
+            const name = document.getElementById('prodName').value.trim();
+            const price = parseFloat(document.getElementById('prodPrice').value);
+            const description = document.getElementById('prodDesc').value;
+            const image_url = document.getElementById('prodImage').value;
+            const stock = parseInt(document.getElementById('prodStock').value);
+            const specs = document.getElementById('prodSpecs').value;
+
+            if (!name || !price || isNaN(stock)) {
+                alert('⚠️ Vui lòng nhập đầy đủ thông tin bắt buộc (Tên, Giá, Tồn kho)');
+                return;
+            }
+
+            if (price <= 0 || stock < 0) {
+                alert('⚠️ Giá và tồn kho phải là số dương');
+                return;
+            }
+
+            const product = { name, price, description, image_url, stock, specs };
+
+            try {
+                const res = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(product)
+                });
+
+                if (res.ok) {
+                    alert('✅ Thêm sản phẩm thành công');
+                    showProducts();
+                } else {
+                    alert('❌ Thêm sản phẩm thất bại');
+                }
+            } catch (error) {
+                console.error('Lỗi thêm product:', error);
+                alert('❌ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function deleteProduct(productId) {
+            if (!confirm('⚠️ Bạn có chắc chắn muốn xóa sản phẩm này?')) return;
+
+            try {
+                const res = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('✅ Đã xóa sản phẩm');
+                    showProducts();
+                } else {
+                    alert('❌ Xóa sản phẩm thất bại');
+                }
+            } catch (error) {
+                console.error('Lỗi xóa product:', error);
+                alert('❌ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function addArticle() {
+            const title = document.getElementById('articleTitle').value.trim();
+            const content = document.getElementById('articleContent').value.trim();
+            const image_url = document.getElementById('articleImage').value;
+
+            if (!title || !content) {
+                alert('⚠️ Vui lòng nhập tiêu đề và nội dung bài viết');
+                return;
+            }
+
+            const article = {
+                title,
+                content,
+                author: currentUser.name,
+                image_url
+            };
+
+            try {
+                const res = await fetch('/api/articles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(article)
+                });
+
+                if (res.ok) {
+                    alert('✅ Đăng bài thành công');
+                    showArticles();
+                } else {
+                    alert('❌ Đăng bài thất bại');
+                }
+            } catch (error) {
+                console.error('Lỗi thêm article:', error);
+                alert('❌ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        async function deleteArticle(articleId) {
+            if (!confirm('⚠️ Bạn có chắc chắn muốn xóa bài viết này?')) return;
+
+            try {
+                const res = await fetch(`/api/articles/${articleId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('✅ Đã xóa bài viết');
+                    showArticles();
+                } else {
+                    alert('❌ Xóa bài viết thất bại');
+                }
+            } catch (error) {
+                console.error('Lỗi xóa article:', error);
+                alert('❌ Lỗi kết nối: ' + error.message);
+            }
+        }
+
+        function logout() {
+            if (confirm('Bạn có chắc muốn đăng xuất?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/';
+            }
+        }
+
+        async function init() {
+            const authorized = await checkAdminAuth();
+            if (authorized) {
+                showDashboard();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
