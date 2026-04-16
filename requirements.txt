@@ -2,3 +2,5 @@ fastapi==0.104.1
 uvicorn==0.24.0
 supabase==2.0.3
 python-dotenv==1.0.0
+google-auth==2.23.4
+cryptography==41.0.7

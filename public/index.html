@@ -1,83 +1,335 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>My Web App</title>
-  <style>
-    body { font-family: Arial; max-width: 600px; margin: 40px auto; padding: 0 20px; }
-    input { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; }
-    button { padding: 8px 16px; background: #0070f3; color: white; border: none;
-             border-radius: 4px; cursor: pointer; }
-    button:hover { background: #0051cc; }
-    .user-card { border: 1px solid #eee; padding: 12px; margin: 8px 0;
-                 border-radius: 8px; display: flex; justify-content: space-between; }
-    .delete-btn { background: #ff4444; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Printer Store - Máy in 3D chính hãng</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-radius: 20px;
+            margin-bottom: 40px;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .product-info {
+            padding: 20px;
+        }
+        .product-price {
+            font-size: 24px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .btn-buy {
+            background: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .articles-section {
+            margin-top: 60px;
+        }
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        .article-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-links a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .login-btn, .logout-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .login-btn {
+            background: #3498db;
+            color: white;
+        }
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        .role-badge {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #f39c12;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-  <h1>📋 Quản lý Users</h1>
-
-  <!-- Form thêm user -->
-  <div>
-    <input id="name" placeholder="Tên" />
-    <input id="email" placeholder="Email" />
-    <button onclick="addUser()">➕ Thêm User</button>
-  </div>
-
-  <h2>Danh sách Users:</h2>
-  <div id="user-list">Đang tải...</div>
-
-  <script>
-    const API = ""; // Để trống = cùng domain khi deploy
-
-    // Lấy danh sách users
-    async function loadUsers() {
-      const res = await fetch(API + "/api/users");
-      const data = await res.json();
-      const list = document.getElementById("user-list");
-
-      if (data.users.length === 0) {
-        list.innerHTML = "<p>Chưa có user nào.</p>";
-        return;
-      }
-
-      list.innerHTML = data.users.map(u => `
-        <div class="user-card">
-          <span>👤 <b>${u.name}</b> — ${u.email}</span>
-          <button class="delete-btn" onclick="deleteUser('${u.id}')">🗑️ Xóa</button>
+    <div class="navbar">
+        <div class="container nav-container">
+            <h1>🖨️ 3D Printer Store</h1>
+            <div class="nav-links">
+                <a href="/">Trang chủ</a>
+                <a href="#" onclick="showProducts()">Sản phẩm</a>
+                <a href="#" onclick="showArticles()">Bài viết</a>
+                <div id="userInfo" class="user-info"></div>
+            </div>
         </div>
-      `).join("");
-    }
+    </div>
 
-    // Thêm user mới
-    async function addUser() {
-      const name = document.getElementById("name").value;
-      const email = document.getElementById("email").value;
+    <div class="container">
+        <div id="mainContent"></div>
+    </div>
 
-      if (!name || !email) { alert("Điền đầy đủ thông tin!"); return; }
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        let currentUser = null;
+        let currentToken = null;
 
-      const res = await fetch(API + "/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email })
-      });
+        // Kiểm tra đăng nhập
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                currentToken = token;
+                // Giả lập lấy user info từ token
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    currentUser = JSON.parse(userStr);
+                    updateUserUI();
+                }
+            }
+            showProducts();
+        }
 
-      const data = await res.json();
-      alert(data.message);
-      document.getElementById("name").value = "";
-      document.getElementById("email").value = "";
-      loadUsers(); // Tải lại danh sách
-    }
+        function updateUserUI() {
+            const userInfoDiv = document.getElementById('userInfo');
+            if (currentUser) {
+                userInfoDiv.innerHTML = `
+                    <span>👋 ${currentUser.name}</span>
+                    <span class="role-badge">${currentUser.role === 'admin' ? 'Quản trị viên' : currentUser.role === 'editor' ? 'Biên tập viên' : 'Khách hàng'}</span>
+                    ${currentUser.role === 'admin' || currentUser.role === 'editor' ? '<a href="/dashboard" style="color:#3498db">📊 Dashboard</a>' : ''}
+                    <button class="logout-btn" onclick="logout()">Đăng xuất</button>
+                `;
+            } else {
+                userInfoDiv.innerHTML = `
+                    <button class="login-btn" onclick="showLoginModal()">🔐 Đăng nhập</button>
+                `;
+            }
+        }
 
-    // Xóa user
-    async function deleteUser(id) {
-      if (!confirm("Xóa user này?")) return;
-      await fetch(API + "/api/users/" + id, { method: "DELETE" });
-      loadUsers();
-    }
+        function showLoginModal() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5); display: flex; justify-content: center;
+                align-items: center; z-index: 1000;
+            `;
+            modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 15px; width: 400px;">
+                    <h2>Đăng nhập</h2>
+                    <input type="text" id="loginUsername" placeholder="Tên đăng nhập" style="width:100%; padding:10px; margin:10px 0">
+                    <input type="password" id="loginPassword" placeholder="Mật khẩu" style="width:100%; padding:10px; margin:10px 0">
+                    <button onclick="loginWithAccount()" style="width:100%; padding:10px; background:#3498db; color:white; border:none; border-radius:5px">Đăng nhập</button>
+                    <hr style="margin:20px 0">
+                    <div id="googleButton" style="display:flex; justify-content:center"></div>
+                    <button onclick="this.parentElement.parentElement.remove()" style="margin-top:10px; width:100%; padding:10px">Đóng</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
 
-    // Tải danh sách khi mở trang
-    loadUsers();
-  </script>
+            // Google Sign-In
+            google.accounts.id.initialize({
+                client_id: 'YOUR_GOOGLE_CLIENT_ID',
+                callback: handleGoogleLogin
+            });
+            google.accounts.id.renderButton(
+                document.getElementById('googleButton'),
+                { theme: 'outline', size: 'large', width: '100%' }
+            );
+        }
+
+        async function loginWithAccount() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                currentUser = data.user;
+                currentToken = data.token;
+                updateUserUI();
+                document.querySelector('.modal')?.remove();
+                showProducts();
+                alert('Đăng nhập thành công!');
+            } else {
+                alert('Sai tên đăng nhập hoặc mật khẩu');
+            }
+        }
+
+        async function handleGoogleLogin(response) {
+            const res = await fetch('/api/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: response.credential })
+            });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                currentUser = data.user;
+                updateUserUI();
+                document.querySelector('.modal')?.remove();
+                showProducts();
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            currentUser = null;
+            updateUserUI();
+            showProducts();
+        }
+
+        async function showProducts() {
+            const res = await fetch('/api/products');
+            const data = await res.json();
+
+            document.getElementById('mainContent').innerHTML = `
+                <div class="hero">
+                    <h1>🖨️ Máy in 3D chất lượng cao</h1>
+                    <p>Công nghệ in 3D tiên tiến nhất - Giá tốt nhất thị trường</p>
+                </div>
+                <h2>Sản phẩm nổi bật</h2>
+                <div class="products-grid" id="productsGrid"></div>
+            `;
+
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = data.products.map(p => `
+                <div class="product-card">
+                    <img src="${p.image_url || 'https://via.placeholder.com/300x200'}" class="product-image" alt="${p.name}">
+                    <div class="product-info">
+                        <h3>${p.name}</h3>
+                        <p>${p.description.substring(0, 100)}...</p>
+                        <div class="product-price">${p.price.toLocaleString()}đ</div>
+                        <p>Còn lại: ${p.stock} sản phẩm</p>
+                        ${currentUser ? `<button class="btn-buy" onclick="buyProduct('${p.id}', ${p.price})">Mua ngay</button>` : '<button class="btn-buy" onclick="showLoginModal()">Đăng nhập để mua</button>'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function showArticles() {
+            const res = await fetch('/api/articles');
+            const data = await res.json();
+
+            document.getElementById('mainContent').innerHTML = `
+                <h2>📝 Bài viết về công nghệ in 3D</h2>
+                <div class="articles-grid">
+                    ${data.articles.map(a => `
+                        <div class="article-card">
+                            <h3>${a.title}</h3>
+                            <p style="color:#666">✍️ ${a.author} | ${new Date(a.created_at).toLocaleDateString('vi-VN')}</p>
+                            <p>${a.content.substring(0, 200)}...</p>
+                            <button onclick="showFullArticle('${a.id}')">Đọc tiếp →</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        async function buyProduct(productId, price) {
+            const quantity = prompt('Nhập số lượng:', '1');
+            if (!quantity) return;
+
+            const res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`
+                },
+                body: JSON.stringify({
+                    user_id: currentUser.id,
+                    product_id: productId,
+                    quantity: parseInt(quantity),
+                    total_price: price * parseInt(quantity)
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert('Đặt hàng thành công!');
+                showProducts();
+            } else {
+                alert('Đặt hàng thất bại: ' + data.detail);
+            }
+        }
+
+        function showFullArticle(id) {
+            // TODO: Implement full article view
+            alert('Tính năng đang phát triển');
+        }
+
+        checkAuth();
+    </script>
 </body>
 </html>

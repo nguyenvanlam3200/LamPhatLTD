@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị hệ thống - 3D Printer Store</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+        .sidebar {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+        }
+        .sidebar h3 {
+            margin-bottom: 20px;
+        }
+        .sidebar button {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            background: #34495e;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .sidebar button:hover {
+            background: #3498db;
+        }
+        .content {
+            padding: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f5f5f5;
+        }
+        .btn-edit, .btn-delete {
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: none;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="sidebar">
+            <h3>🖨️ 3D Printer Admin</h3>
+            <button onclick="showUsers()">👥 Quản lý User</button>
+            <button onclick="showProducts()">📦 Quản lý Sản phẩm</button>
+            <button onclick="showArticles()">📝 Quản lý Bài viết</button>
+            <button onclick="showOrders()">📊 Quản lý Đơn hàng</button>
+            <button onclick="changePassword()">🔑 Đổi mật khẩu</button>
+            <button onclick="logout()" style="background:#e74c3c; margin-top:20px">🚪 Đăng xuất</button>
+        </div>
+        <div class="content" id="adminContent">
+            <h2>Chào mừng đến với trang quản trị</h2>
+            <p>Chọn một chức năng từ menu bên trái</p>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let currentToken = null;
+
+        async function checkAdminAuth() {
+            const token = localStorage.getItem('token');
+            const userStr = localStorage.getItem('user');
+
+            if (!token || !userStr) {
+                window.location.href = '/';
+                return;
+            }
+
+            currentUser = JSON.parse(userStr);
+            currentToken = token;
+
+            if (currentUser.role !== 'admin') {
+                alert('Bạn không có quyền truy cập trang quản trị');
+                window.location.href = '/';
+            }
+        }
+
+        async function showUsers() {
+            const res = await fetch('/api/users');
+            const data = await res.json();
+
+            document.getElementById('adminContent').innerHTML = `
+                <h2>👥 Quản lý người dùng</h2>
+                <div style="margin-bottom:20px">
+                    <h3>Thêm user mới</h3>
+                    <input type="text" id="newUserName" placeholder="Tên" style="padding:8px; margin:5px">
+                    <input type="email" id="newUserEmail" placeholder="Email" style="padding:8px; margin:5px">
+                    <select id="newUserRole" style="padding:8px; margin:5px">
+                        <option value="customer">Khách hàng</option>
+                        <option value="editor">Biên tập viên</option>
+                    </select>
+                    <button onclick="createUser()" style="padding:8px 16px; background:#27ae60; color:white; border:none; border-radius:5px">Thêm user</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr><th>Tên</th><th>Email</th><th>Username</th><th>Vai trò</th><th>Thao tác</th></tr>
+                    </thead>
+                    <tbody>
+                        ${data.users.map(u => `
+                            <tr>
+                                <td>${u.name}</td>
+                                <td>${u.email}</td>
+                                <td>${u.username}</td>
+                                <td>
+                                    <select onchange="updateRole('${u.id}', this.value)">
+                                        <option value="customer" ${u.role === 'customer' ? 'selected' : ''}>Khách hàng</option>
+                                        <option value="editor" ${u.role === 'editor' ? 'selected' : ''}>Biên tập viên</option>
+                                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                    </select>
+                                </td>
+                                <td><button class="btn-delete" onclick="deleteUser('${u.id}')">Xóa</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function showProducts() {
+            const res = await fetch('/api/products');
+            const data = await res.json();
+
+            document.getElementById('adminContent').innerHTML = `
+                <h2>📦 Quản lý sản phẩm</h2>
+                <div style="margin-bottom:20px; padding:20px; background:#f5f5f5; border-radius:10px">
+                    <h3>Thêm sản phẩm mới</h3>
+                    <div class="form-group"><label>Tên sản phẩm</label><input type="text" id="prodName"></div>
+                    <div class="form-group"><label>Giá (VNĐ)</label><input type="number" id="prodPrice"></div>
+                    <div class="form-group"><label>Mô tả</label><textarea id="prodDesc" rows="3"></textarea></div>
+                    <div class="form-group"><label>URL hình ảnh</label><input type="text" id="prodImage"></div>
+                    <div class="form-group"><label>Số lượng tồn kho</label><input type="number" id="prodStock"></div>
+                    <div class="form-group"><label>Thông số kỹ thuật</label><textarea id="prodSpecs" rows="3"></textarea></div>
+                    <button onclick="addProduct()" style="padding:10px 20px; background:#27ae60; color:white; border:none; border-radius:5px">Thêm sản phẩm</button>
+                </div>
+                <table>
+                    <thead><tr><th>Tên</th><th>Giá</th><th>Tồn kho</th><th>Thao tác</th></tr></thead>
+                    <tbody>
+                        ${data.products.map(p => `
+                            <tr>
+                                <td>${p.name}</td>
+                                <td>${p.price.toLocaleString()}đ</td>
+                                <td>${p.stock}</td>
+                                <td><button class="btn-delete" onclick="deleteProduct('${p.id}')">Xóa</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function showArticles() {
+            const res = await fetch('/api/articles');
+            const data = await res.json();
+
+            document.getElementById('adminContent').innerHTML = `
+                <h2>📝 Quản lý bài viết</h2>
+                <div style="margin-bottom:20px; padding:20px; background:#f5f5f5; border-radius:10px">
+                    <h3>Viết bài mới</h3>
+                    <div class="form-group"><label>Tiêu đề</label><input type="text" id="articleTitle"></div>
+                    <div class="form-group"><label>Nội dung</label><textarea id="articleContent" rows="5"></textarea></div>
+                    <div class="form-group"><label>URL hình ảnh</label><input type="text" id="articleImage"></div>
+                    <button onclick="addArticle()" style="padding:10px 20px; background:#27ae60; color:white; border:none; border-radius:5px">Đăng bài</button>
+                </div>
+                <table>
+                    <thead><tr><th>Tiêu đề</th><th>Tác giả</th><th>Ngày đăng</th><th>Thao tác</th></tr></thead>
+                    <tbody>
+                        ${data.articles.map(a => `
+                            <tr>
+                                <td>${a.title}</td>
+                                <td>${a.author}</td>
+                                <td>${new Date(a.created_at).toLocaleDateString('vi-VN')}</td>
+                                <td><button class="btn-delete" onclick="deleteArticle('${a.id}')">Xóa</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function showOrders() {
+            alert('Tính năng đang phát triển');
+        }
+
+        function changePassword() {
+            document.getElementById('adminContent').innerHTML = `
+                <h2>🔑 Đổi mật khẩu</h2>
+                <div style="max-width:400px">
+                    <div class="form-group"><label>Tên đăng nhập</label><input type="text" id="cpUsername" value="${currentUser.username}" readonly></div>
+                    <div class="form-group"><label>Mật khẩu cũ</label><input type="password" id="oldPass"></div>
+                    <div class="form-group"><label>Mật khẩu mới</label><input type="password" id="newPass"></div>
+                    <button onclick="submitChangePassword()" style="padding:10px 20px; background:#3498db; color:white; border:none; border-radius:5px">Đổi mật khẩu</button>
+                </div>
+            `;
+        }
+
+        async function submitChangePassword() {
+            const username = document.getElementById('cpUsername').value;
+            const oldPass = document.getElementById('oldPass').value;
+            const newPass = document.getElementById('newPass').value;
+
+            const res = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, old_password: oldPass, new_password: newPass })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert('Đổi mật khẩu thành công!');
+                logout();
+            } else {
+                alert(data.detail || 'Đổi mật khẩu thất bại');
+            }
+        }
+
+        async function createUser() {
+            const name = document.getElementById('newUserName').value;
+            const email = document.getElementById('newUserEmail').value;
+            const role = document.getElementById('newUserRole').value;
+
+            const res = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, role })
+            });
+
+            if (res.ok) {
+                alert('Thêm user thành công! Mật khẩu mặc định: 123456');
+                showUsers();
+            } else {
+                alert('Thêm user thất bại');
+            }
+        }
+
+        async function updateRole(userId, role) {
+            await fetch(`/api/users/${userId}/role?role=${role}`, { method: 'PUT' });
+            alert('Cập nhật vai trò thành công');
+        }
+
+        async function deleteUser(userId) {
+            if (confirm('Xóa user này?')) {
+                await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+                showUsers();
+            }
+        }
+
+        async function addProduct() {
+            const product = {
+                name: document.getElementById('prodName').value,
+                price: parseFloat(document.getElementById('prodPrice').value),
+                description: document.getElementById('prodDesc').value,
+                image_url: document.getElementById('prodImage').value,
+                stock: parseInt(document.getElementById('prodStock').value),
+                specs: document.getElementById('prodSpecs').value
+            };
+
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(product)
+            });
+
+            if (res.ok) {
+                alert('Thêm sản phẩm thành công');
+                showProducts();
+            }
+        }
+
+        async function deleteProduct(productId) {
+            if (confirm('Xóa sản phẩm này?')) {
+                await fetch(`/api/products/${productId}`, { method: 'DELETE' });
+                showProducts();
+            }
+        }
+
+        async function addArticle() {
+            const article = {
+                title: document.getElementById('articleTitle').value,
+                content: document.getElementById('articleContent').value,
+                author: currentUser.name,
+                image_url: document.getElementById('articleImage').value
+            };
+
+            const res = await fetch('/api/articles', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(article)
+            });
+
+            if (res.ok) {
+                alert('Đăng bài thành công');
+                showArticles();
+            }
+        }
+
+        async function deleteArticle(articleId) {
+            if (confirm('Xóa bài viết này?')) {
+                await fetch(`/api/articles/${articleId}`, { method: 'DELETE' });
+                showArticles();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+
+        checkAdminAuth();
+    </script>
+</body>
+</html>

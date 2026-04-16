@@ -6,6 +6,8 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "api/index.py" },
+    { "src": "/admin", "dest": "public/admin.html" },
+    { "src": "/dashboard", "dest": "public/dashboard.html" },
     { "src": "/(.*)", "dest": "public/index.html" }
   ]
 }
