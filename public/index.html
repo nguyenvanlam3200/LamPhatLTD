@@ -232,7 +232,10 @@
         const token = localStorage.getItem('token');
         const userStr = localStorage.getItem('user');
 
-
+        if (!token || !userStr) {
+            showLoginForm();
+            return false;
+        }
 
         try {
             currentUser = JSON.parse(userStr);
@@ -249,8 +252,79 @@
             console.error('Lỗi:', e);
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            window.location.href = '/';
+            showLoginForm();
             return false;
+        }
+    }
+
+    function showLoginForm() {
+        document.getElementById('adminContent').innerHTML = `
+            <div style="max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h2 style="text-align: center; margin-bottom: 20px;">🔐 Đăng nhập Admin</h2>
+                <div id="loginError" style="color: red; text-align: center; margin-bottom: 10px; display: none;"></div>
+                <div class="form-group">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" id="loginUsername" placeholder="admin" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="loginPassword" placeholder="••••••" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <button onclick="doLogin()" style="width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">Đăng nhập</button>
+                <div style="text-align: center; margin-top: 15px; font-size: 12px; color: #666;">
+                    📝 Tài khoản mặc định: <strong>admin</strong> / <strong>admin</strong>
+                </div>
+            </div>
+        `;
+
+        const passwordInput = document.getElementById('loginPassword');
+        if (passwordInput) {
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') doLogin();
+            });
+        }
+    }
+
+    async function doLogin() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const errorDiv = document.getElementById('loginError');
+
+        errorDiv.style.display = 'none';
+
+        if (!username || !password) {
+            errorDiv.textContent = '⚠️ Vui lòng nhập đầy đủ thông tin';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                if (data.user.role === 'admin' || data.user.role === 'editor') {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    currentUser = data.user;
+                    currentToken = data.token;
+                    showDashboard();
+                } else {
+                    errorDiv.textContent = '❌ Tài khoản không có quyền truy cập Admin';
+                    errorDiv.style.display = 'block';
+                }
+            } else {
+                errorDiv.textContent = '❌ Sai tên đăng nhập hoặc mật khẩu';
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            errorDiv.textContent = '❌ Lỗi kết nối server';
+            errorDiv.style.display = 'block';
         }
     }
 
