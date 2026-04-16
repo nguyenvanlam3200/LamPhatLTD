@@ -232,11 +232,7 @@
         const token = localStorage.getItem('token');
         const userStr = localStorage.getItem('user');
 
-        if (!token || !userStr) {
-            alert('⚠️ Vui lòng đăng nhập để truy cập trang quản trị');
-            window.location.href = '/';
-            return false;
-        }
+
 
         try {
             currentUser = JSON.parse(userStr);
