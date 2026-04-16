@@ -1,21 +1,16 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from supabase import create_client
+from supabase import create_client, Client
 import os
-from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import hashlib
 import secrets
 from typing import Optional
-import json
-
-# Load environment variables
-load_dotenv()
 
 app = FastAPI()
 
-# CORS configuration
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,14 +19,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Supabase connection
-supabase_url = os.getenv("SUPABASE_URL")
-supabase_key = os.getenv("SUPABASE_KEY")
+# Lấy env variables
+supabase_url = os.environ.get("SUPABASE_URL")
+supabase_key = os.environ.get("SUPABASE_KEY")
 
+# Kiểm tra env variables
 if not supabase_url or not supabase_key:
-    raise Exception("Missing Supabase credentials")
+    raise Exception(f"Missing Supabase credentials: URL={supabase_url}, KEY={supabase_key is not None}")
 
-supabase = create_client(supabase_url, supabase_key)
+# Kết nối Supabase
+supabase: Client = create_client(supabase_url, supabase_key)
 
 
 # Models
@@ -94,22 +91,12 @@ def create_session_token(user_id: str) -> str:
     return token
 
 
-def get_user_from_token(token: str):
-    result = supabase.table("sessions").select("user_id").eq("token", token).gte("expires_at",
-                                                                                 datetime.now().isoformat()).execute()
-    if result.data:
-        user = supabase.table("users").select("*").eq("id", result.data[0]["user_id"]).execute()
-        return user.data[0] if user.data else None
-    return None
-
-
-# Root endpoint
+# Root endpoints
 @app.get("/")
 def root():
     return {"message": "API is running", "status": "ok"}
 
 
-# Test endpoint
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
@@ -117,252 +104,189 @@ def health_check():
 
 @app.get("/api/test")
 def test():
-    return {"status": "ok", "message": "API is working properly"}
+    return {
+        "supabase_url": supabase_url,
+        "supabase_key_exists": supabase_key is not None
+    }
 
 
 # Auth endpoints
 @app.post("/api/auth/login")
 async def login(user_login: UserLogin):
-    try:
-        users = supabase.table("users").select("*").eq("username", user_login.username).execute()
+    users = supabase.table("users").select("*").eq("username", user_login.username).execute()
 
-        if not users.data:
-            raise HTTPException(status_code=401, detail="Sai tên đăng nhập hoặc mật khẩu")
-
-        user = users.data[0]
-        if verify_password(user_login.password, user["password"]):
-            token = create_session_token(user["id"])
-            return {
-                "success": True,
-                "token": token,
-                "user": {
-                    "id": user["id"],
-                    "name": user["name"],
-                    "role": user["role"],
-                    "email": user["email"],
-                    "username": user["username"]
-                }
-            }
-
+    if not users.data:
         raise HTTPException(status_code=401, detail="Sai tên đăng nhập hoặc mật khẩu")
-    except Exception as e:
-        print(f"Login error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+
+    user = users.data[0]
+    if verify_password(user_login.password, user["password"]):
+        token = create_session_token(user["id"])
+        return {
+            "success": True,
+            "token": token,
+            "user": {
+                "id": user["id"],
+                "name": user["name"],
+                "role": user["role"],
+                "email": user["email"],
+                "username": user["username"]
+            }
+        }
+
+    raise HTTPException(status_code=401, detail="Sai tên đăng nhập hoặc mật khẩu")
 
 
 @app.post("/api/auth/logout")
 async def logout(request: Request):
-    try:
-        token = request.headers.get("Authorization", "").replace("Bearer ", "")
-        if token:
-            supabase.table("sessions").delete().eq("token", token).execute()
-        return {"success": True}
-    except Exception as e:
-        print(f"Logout error: {e}")
-        return {"success": True}
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if token:
+        supabase.table("sessions").delete().eq("token", token).execute()
+    return {"success": True}
 
 
 @app.post("/api/auth/change-password")
 async def change_password(data: ChangePassword):
-    try:
-        users = supabase.table("users").select("*").eq("username", data.username).execute()
+    users = supabase.table("users").select("*").eq("username", data.username).execute()
 
-        if not users.data:
-            raise HTTPException(status_code=404, detail="Không tìm thấy user")
+    if not users.data:
+        raise HTTPException(status_code=404, detail="Không tìm thấy user")
 
-        user = users.data[0]
-        if not verify_password(data.old_password, user["password"]):
-            raise HTTPException(status_code=401, detail="Mật khẩu cũ không đúng")
+    user = users.data[0]
+    if not verify_password(data.old_password, user["password"]):
+        raise HTTPException(status_code=401, detail="Mật khẩu cũ không đúng")
 
-        supabase.table("users").update({"password": hash_password(data.new_password)}).eq("username",
-                                                                                          data.username).execute()
-        return {"success": True, "message": "Đổi mật khẩu thành công"}
-    except Exception as e:
-        print(f"Change password error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    supabase.table("users").update({"password": hash_password(data.new_password)}).eq("username",
+                                                                                      data.username).execute()
+    return {"success": True, "message": "Đổi mật khẩu thành công"}
 
 
-# User management endpoints
+# User management
 @app.get("/api/users")
 async def get_users():
-    try:
-        result = supabase.table("users").select("id, name, email, role, username, created_at").order("created_at",
-                                                                                                     desc=True).execute()
-        return {"users": result.data}
-    except Exception as e:
-        print(f"Get users error: {e}")
-        return {"users": []}
+    result = supabase.table("users").select("id, name, email, role, username, created_at").order("created_at",
+                                                                                                 desc=True).execute()
+    return {"users": result.data}
 
 
 @app.post("/api/users")
 async def create_user(user: UserRegister):
-    try:
-        existing = supabase.table("users").select("*").eq("email", user.email).execute()
-        if existing.data:
-            raise HTTPException(status_code=400, detail="Email đã tồn tại")
+    existing = supabase.table("users").select("*").eq("email", user.email).execute()
+    if existing.data:
+        raise HTTPException(status_code=400, detail="Email đã tồn tại")
 
-        default_password = hash_password("123456")
-        username = user.email.split("@")[0]
+    default_password = hash_password("123456")
+    username = user.email.split("@")[0]
 
-        # Kiểm tra username đã tồn tại
-        username_check = supabase.table("users").select("*").eq("username", username).execute()
-        if username_check.data:
-            username = f"{username}{secrets.token_hex(3)}"
+    username_check = supabase.table("users").select("*").eq("username", username).execute()
+    if username_check.data:
+        username = f"{username}{secrets.token_hex(3)}"
 
-        new_user = supabase.table("users").insert({
-            "email": user.email,
-            "name": user.name,
-            "username": username,
-            "password": default_password,
-            "role": user.role
-        }).execute()
+    new_user = supabase.table("users").insert({
+        "email": user.email,
+        "name": user.name,
+        "username": username,
+        "password": default_password,
+        "role": user.role
+    }).execute()
 
-        return {"success": True, "user": new_user.data[0]}
-    except Exception as e:
-        print(f"Create user error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return {"success": True, "user": new_user.data[0]}
 
 
 @app.put("/api/users/{user_id}/role")
 async def update_user_role(user_id: str, role: str):
-    try:
-        supabase.table("users").update({"role": role}).eq("id", user_id).execute()
-        return {"success": True}
-    except Exception as e:
-        print(f"Update role error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    supabase.table("users").update({"role": role}).eq("id", user_id).execute()
+    return {"success": True}
 
 
 @app.delete("/api/users/{user_id}")
 async def delete_user(user_id: str):
-    try:
-        supabase.table("sessions").delete().eq("user_id", user_id).execute()
-        supabase.table("users").delete().eq("id", user_id).execute()
-        return {"success": True, "message": "Đã xóa user"}
-    except Exception as e:
-        print(f"Delete user error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    supabase.table("sessions").delete().eq("user_id", user_id).execute()
+    supabase.table("users").delete().eq("id", user_id).execute()
+    return {"success": True}
 
 
-# Products endpoints
+# Products
 @app.get("/api/products")
 async def get_products():
-    try:
-        result = supabase.table("products").select("*").order("created_at", desc=True).execute()
-        return {"products": result.data}
-    except Exception as e:
-        print(f"Get products error: {e}")
-        return {"products": []}
+    result = supabase.table("products").select("*").order("created_at", desc=True).execute()
+    return {"products": result.data}
 
 
 @app.post("/api/products")
 async def create_product(product: Product):
-    try:
-        new_product = supabase.table("products").insert({
-            "name": product.name,
-            "price": product.price,
-            "description": product.description,
-            "image_url": product.image_url,
-            "stock": product.stock,
-            "specs": product.specs
-        }).execute()
-        return {"success": True, "product": new_product.data[0]}
-    except Exception as e:
-        print(f"Create product error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    new_product = supabase.table("products").insert({
+        "name": product.name,
+        "price": product.price,
+        "description": product.description,
+        "image_url": product.image_url,
+        "stock": product.stock,
+        "specs": product.specs
+    }).execute()
+    return {"success": True, "product": new_product.data[0]}
 
 
 @app.delete("/api/products/{product_id}")
 async def delete_product(product_id: str):
-    try:
-        supabase.table("products").delete().eq("id", product_id).execute()
-        return {"success": True}
-    except Exception as e:
-        print(f"Delete product error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    supabase.table("products").delete().eq("id", product_id).execute()
+    return {"success": True}
 
 
-# Articles endpoints
+# Articles
 @app.get("/api/articles")
 async def get_articles():
-    try:
-        result = supabase.table("articles").select("*").order("created_at", desc=True).execute()
-        return {"articles": result.data}
-    except Exception as e:
-        print(f"Get articles error: {e}")
-        return {"articles": []}
+    result = supabase.table("articles").select("*").order("created_at", desc=True).execute()
+    return {"articles": result.data}
 
 
 @app.post("/api/articles")
 async def create_article(article: Article):
-    try:
-        new_article = supabase.table("articles").insert({
-            "title": article.title,
-            "content": article.content,
-            "author": article.author,
-            "image_url": article.image_url
-        }).execute()
-        return {"success": True, "article": new_article.data[0]}
-    except Exception as e:
-        print(f"Create article error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    new_article = supabase.table("articles").insert({
+        "title": article.title,
+        "content": article.content,
+        "author": article.author,
+        "image_url": article.image_url
+    }).execute()
+    return {"success": True, "article": new_article.data[0]}
 
 
 @app.delete("/api/articles/{article_id}")
 async def delete_article(article_id: str):
-    try:
-        supabase.table("articles").delete().eq("id", article_id).execute()
-        return {"success": True}
-    except Exception as e:
-        print(f"Delete article error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    supabase.table("articles").delete().eq("id", article_id).execute()
+    return {"success": True}
 
 
-# Orders endpoints
+# Orders
 @app.get("/api/orders")
 async def get_orders():
-    try:
-        result = supabase.table("orders").select("*").order("created_at", desc=True).execute()
-        return {"orders": result.data}
-    except Exception as e:
-        print(f"Get orders error: {e}")
-        return {"orders": []}
+    result = supabase.table("orders").select("*").order("created_at", desc=True).execute()
+    return {"orders": result.data}
 
 
 @app.post("/api/orders")
 async def create_order(order: Order):
-    try:
-        # Check stock
-        product = supabase.table("products").select("stock").eq("id", order.product_id).execute()
-        if product.data and product.data[0]["stock"] < order.quantity:
-            raise HTTPException(status_code=400, detail="Sản phẩm không đủ số lượng")
+    product = supabase.table("products").select("stock").eq("id", order.product_id).execute()
+    if product.data and product.data[0]["stock"] < order.quantity:
+        raise HTTPException(status_code=400, detail="Sản phẩm không đủ số lượng")
 
-        new_order = supabase.table("orders").insert({
-            "user_id": order.user_id,
-            "product_id": order.product_id,
-            "quantity": order.quantity,
-            "total_price": order.total_price,
-            "status": "pending"
-        }).execute()
+    new_order = supabase.table("orders").insert({
+        "user_id": order.user_id,
+        "product_id": order.product_id,
+        "quantity": order.quantity,
+        "total_price": order.total_price,
+        "status": "pending"
+    }).execute()
 
-        # Reduce stock
-        if product.data:
-            supabase.table("products").update({"stock": product.data[0]["stock"] - order.quantity}).eq("id",
-                                                                                                       order.product_id).execute()
+    if product.data:
+        supabase.table("products").update({"stock": product.data[0]["stock"] - order.quantity}).eq("id",
+                                                                                                   order.product_id).execute()
 
-        return {"success": True, "order": new_order.data[0]}
-    except Exception as e:
-        print(f"Create order error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return {"success": True, "order": new_order.data[0]}
 
 
-# Initialize default data
+# Initialize data
 @app.on_event("startup")
 def init_default_data():
     try:
-        # Create tables if not exists (Supabase will handle this)
-
-        # Create admin user if not exists
         admin = supabase.table("users").select("*").eq("username", "admin").execute()
         if not admin.data:
             supabase.table("users").insert({
@@ -372,89 +296,22 @@ def init_default_data():
                 "password": hash_password("admin"),
                 "role": "admin"
             }).execute()
-            print("✅ Created default admin user")
+            print("✅ Created admin user")
 
-        # Create sample products if none exist
         products = supabase.table("products").select("*").limit(1).execute()
         if not products.data:
             sample_products = [
-                {
-                    "name": "Ender 3 V3 SE - Máy in 3D cao cấp",
-                    "price": 5990000,
-                    "description": "Máy in 3D Ender 3 V3 SE với công nghệ in nhanh, độ chính xác cao, phù hợp cho người mới bắt đầu và chuyên nghiệp. Tích hợp màn hình cảm ứng, tự động cân bằng giường in.",
-                    "image_url": "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=400",
-                    "stock": 15,
-                    "specs": "🔧 Công nghệ: FDM\n📏 Kích thước: 220x220x250mm\n⚡ Tốc độ: 250mm/s\n🖥️ Màn hình: Cảm ứng 4.3 inch"
-                },
-                {
-                    "name": "Creality K1 - Tốc độ 600mm/s",
-                    "price": 15990000,
-                    "description": "Máy in 3D tốc độ cao 600mm/s, in tự động, AI camera giám sát, phù hợp cho sản xuất và in ấn chuyên nghiệp.",
-                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400",
-                    "stock": 8,
-                    "specs": "⚡ Tốc độ: 600mm/s\n🤖 AI camera\n📱 Điều khiển từ xa\n🖨️ Kích thước: 300x300x300mm"
-                },
-                {
-                    "name": "Anycubic Photon Mono 4K",
-                    "price": 8990000,
-                    "description": "Máy in 3D resin độ phân giải 4K siêu mịn, chi tiết đến từng micromet, lý tưởng cho in mô hình, trang sức, nha khoa.",
-                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400",
-                    "stock": 12,
-                    "specs": "🖨️ Công nghệ: SLA/MSLA\n📐 Độ phân giải: 4K (3840x2160)\n📏 Kích thước: 130x80x165mm\n🎨 Độ chính xác: 0.01mm"
-                },
-                {
-                    "name": "Bambu Lab X1 Carbon",
-                    "price": 39990000,
-                    "description": "Máy in 3D thông minh hàng đầu thế giới, tốc độ siêu cao, in đa màu, AI phát hiện lỗi in.",
-                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400",
-                    "stock": 5,
-                    "specs": "⚡ Tốc độ: 500mm/s\n🎨 In đa màu (AMS)\n🤖 AI phát hiện lỗi\n📏 Kích thước: 256x256x256mm"
-                },
-                {
-                    "name": "Prusa MK4 - Cao cấp",
-                    "price": 24990000,
-                    "description": "Máy in 3D đến từ Cộng hòa Séc, độ bền cao, chất lượng in tuyệt hảo, được cộng đồng yêu thích.",
-                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400",
-                    "stock": 7,
-                    "specs": "🏭 Thương hiệu: Prusa\n📏 Kích thước: 250x210x220mm\n⚡ Tự động cân bằng\n🖥️ Màn hình cảm ứng màu"
-                },
-                {
-                    "name": "Filament PLA 1.75mm 1kg",
-                    "price": 350000,
-                    "description": "Nhựa in 3D PLA chất lượng cao, đường kính 1.75mm, trọng lượng 1kg, nhiều màu sắc, thân thiện môi trường.",
-                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400",
-                    "stock": 50,
-                    "specs": "📏 Đường kính: 1.75mm ± 0.02\n⚖️ Trọng lượng: 1kg\n🌡️ Nhiệt độ in: 190-220°C\n🌱 Sinh học phân hủy"
-                }
+                {"name": "Ender 3 V3 SE", "price": 5990000, "description": "Máy in 3D cao cấp", "stock": 10,
+                 "specs": "FDM, 220x220x250mm"},
+                {"name": "Creality K1", "price": 15990000, "description": "Tốc độ 600mm/s", "stock": 5,
+                 "specs": "600mm/s, AI camera"}
             ]
             for product in sample_products:
                 supabase.table("products").insert(product).execute()
-            print("✅ Created 6 sample products")
-
-        # Create sample articles if none exist
-        articles = supabase.table("articles").select("*").limit(1).execute()
-        if not articles.data:
-            sample_articles = [
-                {
-                    "title": "Hướng dẫn chọn máy in 3D cho người mới",
-                    "content": "Bạn đang phân vân không biết nên chọn máy in 3D nào? Bài viết này sẽ giúp bạn hiểu rõ các tiêu chí quan trọng như công nghệ in (FDM hay Resin), kích thước vùng in, độ phân giải, ngân sách và mục đích sử dụng. FDM phù hợp cho in đồ gia dụng, cơ khí, resin cho mô hình chi tiết. Hãy xác định nhu cầu trước khi mua nhé!",
-                    "author": "Admin",
-                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400"
-                },
-                {
-                    "title": "Top 5 phần mềm thiết kế 3D miễn phí tốt nhất",
-                    "content": "Khám phá các phần mềm thiết kế 3D miễn phí như Tinkercad (dễ dùng cho người mới), Fusion 360 (mạnh mẽ cho cơ khí), Blender (tạo hình nghệ thuật), FreeCAD (mã nguồn mở), SketchUp Free (thiết kế nội thất). Mỗi phần mềm có ưu điểm riêng, hãy chọn theo mục đích của bạn.",
-                    "author": "Editor",
-                    "image_url": "https://images.unsplash.com/photo-1581092335871-4a2c5b2b5b5b?w=400"
-                }
-            ]
-            for article in sample_articles:
-                supabase.table("articles").insert(article).execute()
-            print("✅ Created sample articles")
-
+            print("✅ Created sample products")
     except Exception as e:
-        print(f"Init data error: {e}")
+        print(f"Init error: {e}")
 
 
-# Vercel requires this
+# Vercel handler
 app_handler = app
